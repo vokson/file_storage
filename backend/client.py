@@ -1,5 +1,6 @@
-import aiohttp
 import asyncio
+
+import aiohttp
 
 URL = "http://10.95.27.163/"
 

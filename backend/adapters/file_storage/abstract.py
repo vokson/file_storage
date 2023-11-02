@@ -9,3 +9,4 @@ class AbstractFileStorage(ABC):
     @abstractmethod
     async def get(self, id: str) -> AsyncGenerator[bytes, None]:
         pass
+

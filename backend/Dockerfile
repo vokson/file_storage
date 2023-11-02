@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-WORKDIR /code
+WORKDIR /backend
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -11,7 +11,7 @@ COPY ./requirements.txt ./requirements.txt
 
 RUN apt-get update \
     && apt-get install -y vim build-essential cron \
-    && pip install -r /code/requirements.txt \
+    && pip install -r /backend/requirements.txt \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .

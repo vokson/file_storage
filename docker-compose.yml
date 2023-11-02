@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.8'
 
 volumes:
   file_storage:
@@ -51,12 +51,13 @@ services:
     build:
         context: ./backend
         dockerfile: ./Dockerfile
-    deploy:
-      mode: replicated
-      replicas: 1
+    # deploy:
+    #   mode: replicated
+    #   replicas: 1
+    env_file:
+      - ./.env
     volumes:
       - file_storage:/storage
-      - ./backend:/backend/
     restart: always
     command: ["python", "/backend/server.py"]
 
