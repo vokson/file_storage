@@ -1,6 +1,7 @@
 version: '3.8'
 
 volumes:
+  db_data: null
   file_storage:
     driver_opts:
       type: cifs
@@ -8,18 +9,18 @@ volumes:
       device: //10.95.27.244/${STORAGE_FOLDER}/_TEST
 
 services:
-  # auth_db:
-  #   image: postgres:14.5-alpine
-  #   volumes:
-  #     - auth_db_data:/var/lib/postgresql/data/
-  #   restart: always
-  #   environment:
-  #     - POSTGRES_USER=${AUTH_DB__USER}
-  #     - POSTGRES_PASSWORD=${AUTH_DB__PASSWORD}
-  #     - POSTGRES_DB=${AUTH_DB__DBNAME}
-  #   ports:
-  #     - "${AUTH_DB__PORT}:${AUTH_DB__PORT}"
-  #   command: -p ${AUTH_DB__PORT}
+  db:
+    image: postgres:14.9-alpine
+    volumes:
+      - db_data:/var/lib/postgresql/data/
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB__USER}
+      - POSTGRES_PASSWORD=${DB__PASSWORD}
+      - POSTGRES_DB=${DB__DBNAME}
+    ports:
+      - "${DB__PORT}:${DB__PORT}"
+    command: -p ${DB__PORT}
 
   # storage_db:
   #   image: postgres:14.5-alpine
@@ -36,6 +37,8 @@ services:
 
   nginx:
     image: nginx:1.25
+    depends_on:
+      - backend
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -51,6 +54,8 @@ services:
     build:
         context: ./backend
         dockerfile: ./Dockerfile
+    depends_on:
+      - db
     # deploy:
     #   mode: replicated
     #   replicas: 1

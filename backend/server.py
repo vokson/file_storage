@@ -1,6 +1,5 @@
 import os
 import sys
-from logging import config as logging_config
 
 from aiohttp import web
 
@@ -9,9 +8,8 @@ sys.path.append(BASE_DIR)
 
 from backend.api.middlewares import error_middleware
 from backend.api.v1.handlers import files
-from backend.core.logger import LOGGING
+from backend.core.config import settings
 
-logging_config.dictConfig(LOGGING)
 
 
 # async def index(request):

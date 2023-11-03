@@ -7,10 +7,10 @@ from pydantic import UUID4
 
 from backend.adapters.file_storage.abstract import AbstractFileStorage
 from backend.core import exceptions
+from backend.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-STORAGE_PATH = "/storage"
 CHUNK_SIZE = 2**16
 
 
@@ -32,7 +32,7 @@ class LocalFileStorage(AbstractFileStorage):
 
     @staticmethod
     def _generate_path(id: UUID4) -> str:
-        return os.path.join(STORAGE_PATH, str(id)[:2], str(id))
+        return os.path.join(settings.storage_path, str(id)[:2], str(id))
 
 
 async def get_local_file_storage() -> AbstractFileStorage:
