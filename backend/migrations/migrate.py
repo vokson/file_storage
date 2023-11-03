@@ -32,7 +32,6 @@ async def get_migrations(conn: Connection) -> list:
         return []
 
 
-
 async def create_migrations(conn: Connection):
     await conn.execute(
         """
@@ -96,7 +95,7 @@ async def forward(conn: Connection, migrations: set[str]):
 
 
 async def revert(conn: Connection, migrations: set[str], count: int):
-    if len(migrations) ==0:
+    if len(migrations) == 0:
         logger.info("No migrations !!")
         return
 

@@ -1,5 +1,6 @@
 import logging
 from typing import AsyncGenerator
+from backend.api.responses.abstract import Response
 
 from aiohttp import web
 
@@ -23,10 +24,19 @@ def transform_exception(err: Exception) -> web.Response:
     )
 
 
+async def transform_json_response(r: Response) -> web.Response:
+    response = web.Response(
+        headers={
+            "Content-Type": "application/json; charset=utf-8",
+        },
+        body=r.model_dump_json().encode(encoding='utf-8')
+    )
+    return response
+
+
 async def transform_file_response(
     request: web.Request, filename: str, gen: AsyncGenerator[bytes, None]
 ) -> web.StreamResponse:
-
     response = web.StreamResponse(
         headers={
             "Content-Type": "application/octet-stream",

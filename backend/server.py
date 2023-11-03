@@ -7,7 +7,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 from backend.api.middlewares import error_middleware
-from backend.api.v1.handlers import files
+from backend.api.v1.routes import ROUTES
 from backend.core.config import settings
 
 
@@ -19,7 +19,7 @@ from backend.core.config import settings
 
 
 def setup_routes(app):
-    app.router.add_routes([web.get("/files/{id}/", files.download)])
+    app.router.add_routes(ROUTES)
 
 
 def init():

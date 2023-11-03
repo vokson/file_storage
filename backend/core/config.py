@@ -1,6 +1,6 @@
 import os
 from logging import config as logging_config
-# from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 
 
 from pydantic import BaseModel, Field
@@ -82,8 +82,8 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-# def tz_now():
-#     return datetime.now() + timedelta(hours=3)  # Moscow Time
+def tz_now():
+    return datetime.now() + timedelta(hours=3)  # Moscow Time
 
 
 db_dsl = {
