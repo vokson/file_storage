@@ -1,9 +1,9 @@
 import logging
 import os
+from uuid import UUID
 from typing import AsyncGenerator
 
 from aiofiles import open as aopen
-from pydantic import UUID4
 
 from backend.adapters.file_storage.abstract import AbstractFileStorage
 from backend.core import exceptions
@@ -15,8 +15,9 @@ CHUNK_SIZE = 2**16
 
 
 class LocalFileStorage(AbstractFileStorage):
-    async def get(self, id: UUID4)-> AsyncGenerator[bytes, None]:
+    async def get(self, id: UUID)-> AsyncGenerator[bytes, None]:
         path = self._generate_path(id)
+        print(path)
 
         if not os.path.isfile(path):
             raise exceptions.FileNotFound('File not found')
@@ -31,7 +32,7 @@ class LocalFileStorage(AbstractFileStorage):
                 yield chunk
 
     @staticmethod
-    def _generate_path(id: UUID4) -> str:
+    def _generate_path(id: UUID) -> str:
         return os.path.join(settings.storage_path, str(id)[:2], str(id))
 
 

@@ -7,9 +7,13 @@ from backend.adapters.file_storage.local import get_local_file_storage
 from backend.adapters.file_repository.abstract import AbstractFileRepository
 from backend.adapters.file_repository.db import get_db_file_repository
 
+from backend.adapters.account_repository.abstract import AbstractAccountRepository
+from backend.adapters.account_repository.db import get_db_account_repository
+
 # from src.adapters.broker import init_publisher
 # from src.adapters.cache import init_cache
 from backend.adapters.db import get_db_conn, release_db_conn
+
 # from src.adapters.geoip import init_geo_ip
 # from src.adapters.repositories.cdn_server import CdnServerRepository
 # from src.adapters.repositories.file import FileRepository
@@ -73,10 +77,13 @@ class UnitOfWork(AbstractUnitOfWork):
     def __init__(
         self,
         bootstrap: list[str],
-        get_file_storage:  Callable[[], Awaitable[AbstractFileStorage]] | None = None,
-        get_file_repository:  Callable[..., Awaitable[AbstractFileRepository]] | None = None,
-        get_db_conn:  Callable[..., Awaitable] | None = None,
-        release_db_conn:  Callable[..., Awaitable] | None = None,
+        get_file_storage: Callable[[], Awaitable[AbstractFileStorage]] | None = None,
+        get_file_repository: Callable[..., Awaitable[AbstractFileRepository]]
+        | None = None,
+        get_account_repository: Callable[..., Awaitable[AbstractAccountRepository]]
+        | None = None,
+        get_db_conn: Callable[..., Awaitable] | None = None,
+        release_db_conn: Callable[..., Awaitable] | None = None,
         # release_db_conn=release_db_conn,
         # get_cache=get_cache_connection,
         # get_geo_ip=init_geo_ip,
@@ -88,6 +95,9 @@ class UnitOfWork(AbstractUnitOfWork):
         self._conn = None
         self._get_file_storage = get_file_storage or get_local_file_storage
         self._get_file_repository = get_file_repository or get_db_file_repository
+        self._get_account_repository = (
+            get_account_repository or get_db_account_repository
+        )
         self._get_db_conn = get_db_conn or get_db_connection
         self._release_db_conn = release_db_conn or release_db_connection
         # self._get_cache_conn = get_cache
@@ -118,10 +128,13 @@ class UnitOfWork(AbstractUnitOfWork):
             self._transaction = self._conn.transaction()
             await self._transaction.start()
 
-        if "file_repository" in self._bootstrap:
-            self.file_repository = await self._get_file_repository(self._file_storage, self._conn)
-        #     self.file_share_links = FileShareLinkRepository(self._conn)
-        #     self.history = HistoryRepository(self._conn)
+            if "account_repository" in self._bootstrap:
+                self.account_repository = await self._get_account_repository(self._conn)
+
+            if "file_repository" in self._bootstrap:
+                self.file_repository = await self._get_file_repository(
+                    self._file_storage, self._conn
+                )
 
         return self
 

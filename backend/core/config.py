@@ -14,6 +14,9 @@ ENV_DIR = os.path.join(BASE_DIR, "..")
 
 logging_config.dictConfig(LOGGING)
 
+# class DatabaseTableSettings(BaseModel):
+#     accounts: str = Field('accounts')
+#     files: str = Field('files')
 
 class DatabaseSettings(BaseModel):
     host: str
@@ -21,6 +24,7 @@ class DatabaseSettings(BaseModel):
     user: str
     password: str
     dbname: str
+    # tables: DatabaseTableSettings
 
 
 # class AuthServiceSettings(BaseSettings):
@@ -68,6 +72,8 @@ class Settings(BaseSettings):
     # geo: GeoSettings
     # rabbitmq: RabbitSettings
     storage_path: str = Field("/storage")
+    accounts_table: str = Field('accounts')
+    files_table: str = Field('files')
 
     class Config:
         extra='allow'

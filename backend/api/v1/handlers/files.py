@@ -1,4 +1,5 @@
 from aiohttp import web
+from uuid import UUID
 
 from backend.api.dependables import get_bus
 from backend.api.middlewares import validate_path_parameters
@@ -10,17 +11,18 @@ from backend.service_layer.message_bus import MessageBus
 
 @validate_path_parameters(GetRequest)
 async def get(
-    request: web.Request, path_parameters: dict, bus: MessageBus | None = None
+    request: web.Request, _account_id: UUID, path_parameters: dict, bus: MessageBus | None = None
 ) -> web.Response:
     bus = bus or await get_bus()
-    cmd = commands.GetFile(**path_parameters)
+    cmd = commands.GetFile(account_id=_account_id, file_id=path_parameters['id'])
     return await transform_json_response(await bus.handle(cmd))
 
 
 @validate_path_parameters(DownloadRequest)
 async def download(
-    request: web.Request, path_parameters: dict, bus: MessageBus | None = None
+    request: web.Request, _account_id: UUID, path_parameters: dict, bus: MessageBus | None = None
 ) -> web.StreamResponse:
     bus = bus or await get_bus()
-    cmd = commands.DownloadFile(**path_parameters)
-    return await transform_file_response(request, "text.txt", await bus.handle(cmd))
+    cmd = commands.DownloadFile(account_id=_account_id, file_id=path_parameters['id'])
+    filename, size, gen = await bus.handle(cmd)
+    return await transform_file_response(request, filename, size, gen)

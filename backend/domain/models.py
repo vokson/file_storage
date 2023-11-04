@@ -5,10 +5,8 @@ from backend.core.config import tz_now
 
 
 class AbstractModel(BaseModel):
-     class Config:
-        json_encoders = {
-            datetime: lambda x: str(x)
-        }
+    class Config:
+        json_encoders = {datetime: lambda x: str(x)}
 
 
 class IdMixin(BaseModel):
@@ -19,8 +17,13 @@ class CreatedMixin(BaseModel):
     created: datetime = Field(default_factory=tz_now)
 
 
+class Account(AbstractModel, IdMixin):
+    name: str
+    auth_token: UUID4
+    is_active: bool
+
+
 class File(AbstractModel, IdMixin, CreatedMixin):
-    id: UUID4
     stored_id: UUID4
     name: str
     size: int

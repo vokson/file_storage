@@ -1,16 +1,31 @@
-### API
-
 class ApiException(Exception):
     pass
+
+
+class RepositoryException(Exception):
+    pass
+
+
+### API
+
+
+class AuthTokenFail(ApiException):
+    pass
+
 
 class ParameterPathWrong(ApiException):
     pass
 
 
-### FILE
+### ACCOUNT
 
-class FileStorageException(Exception):
+
+class AccountNotFound(RepositoryException):
     pass
 
-class FileNotFound(FileStorageException):
+
+### FILE
+
+
+class FileNotFound(RepositoryException):
     pass

@@ -12,12 +12,15 @@ async def get(
     uow: AbstractUnitOfWork,
 ) -> FileReponse:
     async with uow:
-        model = await uow.file_repository.get(cmd.id)
+        model = await uow.file_repository.get(cmd.account_id, cmd.file_id)
         return FileReponse(**dict(model))
 
 async def download(
     cmd: commands.DownloadFile,
     uow: AbstractUnitOfWork,
-) -> Awaitable[AsyncGenerator[bytes, None]]:
-    return uow.file_repository.bytes(cmd.id)
+) -> tuple[str, int,  Awaitable[AsyncGenerator[bytes, None]]]:
+    async with uow:
+        model = await uow.file_repository.get(cmd.account_id, cmd.file_id)
+        gen = await uow.file_repository.bytes(model.stored_id)
 
+        return model.name, model.size, gen

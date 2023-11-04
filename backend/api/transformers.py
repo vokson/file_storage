@@ -35,11 +35,12 @@ async def transform_json_response(r: Response) -> web.Response:
 
 
 async def transform_file_response(
-    request: web.Request, filename: str, gen: AsyncGenerator[bytes, None]
+    request: web.Request, filename: str, size: int, gen: AsyncGenerator[bytes, None]
 ) -> web.StreamResponse:
     response = web.StreamResponse(
         headers={
             "Content-Type": "application/octet-stream",
+            "Content-Length": str(size),
             "Content-Disposition": f"attachment; filename={filename}",
         }
     )

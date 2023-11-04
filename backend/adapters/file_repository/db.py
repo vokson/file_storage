@@ -3,14 +3,14 @@ from .abstract import AbstractFileRepository
 from backend.domain.models import File
 from backend.adapters.file_storage.abstract import AbstractFileStorage
 from uuid import UUID
+from typing import AsyncGenerator, Coroutine
+from backend.core.config import settings
 from backend.core import exceptions
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseFileRepository(AbstractFileRepository):
-    __files_tablename__ = "files"
-
     # ADD_QUERY = f"""
     #                 INSERT INTO {__files_tablename__}
     #                     (
@@ -41,20 +41,30 @@ class DatabaseFileRepository(AbstractFileRepository):
     #                 WHERE id = $1;
     #                 """
 
-    GET_BY_ID_QUERY = f"SELECT * FROM {__files_tablename__} WHERE id = $1;"
+    GET_BY_ID_QUERY = f"""
+                    SELECT * FROM {settings.files_table}
+                    WHERE account_id = $1 AND id = $2;
+                    """
 
     def __init__(self, storage: AbstractFileStorage, conn):
         super().__init__(storage)
         self._conn = conn
 
-    async def get(self, id: UUID) -> File:
-        logger.debug(f"Get file with id {id}")
-        row = await self._conn.fetchrow(self.GET_BY_ID_QUERY, id)
+    async def get(self, account_id: UUID, file_id: UUID) -> File:
+        logger.debug(f"Get file with id {file_id} by account {account_id}")
+        row = await self._conn.fetchrow(self.GET_BY_ID_QUERY, account_id, file_id)
         if not row:
             raise exceptions.FileNotFound
 
         return self._convert_row_to_obj(row)
 
+    async def bytes(
+        self, file_id: UUID
+    ) -> Coroutine[None, None, AsyncGenerator[bytes, None]]:
+        return self._storage.get(file_id)
 
-async def get_db_file_repository(storage: AbstractFileStorage, conn) -> AbstractFileRepository:
+
+async def get_db_file_repository(
+    storage: AbstractFileStorage, conn
+) -> AbstractFileRepository:
     return DatabaseFileRepository(storage, conn)

@@ -52,7 +52,7 @@ from backend.core import exceptions
 
 RESPONSE_CODES = {
     exceptions.FileNotFound: "File.Error.NotFound",
-    # exceptions.AuthTokenFail: "Auth.Token.Fail",
+    exceptions.AuthTokenFail: "Auth.Token.Fail",
     # exceptions.AuthTokenBlocked: "Auth.Token.Blocked",
     # exceptions.AuthTokenNotAllowed: "Auth.Token.NotAllowed",
     # exceptions.RequestBodyNotJson: "Request.Body.NotJson",

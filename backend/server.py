@@ -6,7 +6,7 @@ from aiohttp import web
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-from backend.api.middlewares import error_middleware
+from backend.api import middlewares
 from backend.api.v1.routes import ROUTES
 from backend.core.config import settings
 
@@ -23,7 +23,7 @@ def setup_routes(app):
 
 
 def init():
-    app = web.Application(middlewares=[error_middleware])
+    app = web.Application(middlewares=[middlewares.error_middleware, middlewares.verify_auth_token])
     setup_routes(app)
     return app
 
