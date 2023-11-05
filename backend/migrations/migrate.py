@@ -45,7 +45,7 @@ async def create_migrations(conn: Connection):
     )
 
 
-async def apply_migration(conn: Connection, path: str, filename: str, is_new: bool):
+async def apply_migration(conn: Connection, path: str, filename: str, is_new: bool) -> bool:
     migration_query = (
         """
         INSERT INTO __migrations__ (name, created)
@@ -62,10 +62,12 @@ async def apply_migration(conn: Connection, path: str, filename: str, is_new: bo
             await conn.execute(query)
             await conn.execute(migration_query, filename)
             logger.info(f"{filename} - OK")
+            return True
 
         except Exception as e:
             logger.error(e)
             logger.info(f"{filename} - FAIL")
+            return False
 
 
 def get_filenames(path):
@@ -91,7 +93,8 @@ async def forward(conn: Connection, migrations: set[str]):
         return
 
     for filename in sorted(not_applied_migrations):
-        await apply_migration(conn, SQL_DIR_FORWARD, filename, True)
+        if not await apply_migration(conn, SQL_DIR_FORWARD, filename, True):
+            break
 
 
 async def revert(conn: Connection, migrations: set[str], count: int):
@@ -102,7 +105,8 @@ async def revert(conn: Connection, migrations: set[str], count: int):
     #  Применяем миграции
     logger.info(f"Reversing {count} migrations..")
     for filename in sorted(migrations, reverse=True):
-        await apply_migration(conn, SQL_DIR_REVERSE, filename, False)
+        if not await apply_migration(conn, SQL_DIR_REVERSE, filename, False):
+            break
 
         count -= 1
         if count == 0:

@@ -27,7 +27,6 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     stored_id: UUID4
     name: str
     size: int
-    key: UUID4
     account_id: UUID4
     has_deleted: bool = Field(False)
     deleted: datetime | None = Field(None)

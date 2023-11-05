@@ -11,3 +11,10 @@ class AbstractFileStorage(ABC):
     async def get(self, id: UUID) -> AsyncGenerator[bytes, None]:
         pass
 
+    @abstractmethod
+    async def save(
+        self,
+        id: UUID,
+        bytes_gen: AsyncGenerator[bytes, None],
+    ) -> int:
+        pass

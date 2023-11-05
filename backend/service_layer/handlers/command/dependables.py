@@ -8,4 +8,5 @@ COMMAND_HANDLERS = {
     # FILE
     commands.GetFile: files.get,
     commands.DownloadFile: files.download,
+    commands.UploadFile: files.upload,
 }

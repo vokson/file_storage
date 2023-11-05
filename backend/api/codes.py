@@ -1,5 +1,3 @@
-import pydantic
-
 from backend.core import exceptions
 
 # COMMAND_RESULTS_RESPONSE_CODES = {
@@ -51,6 +49,7 @@ from backend.core import exceptions
 # }
 
 RESPONSE_CODES = {
+    ConnectionResetError: "Connection.Error.Reset",
     exceptions.FileNotFound: "File.Error.NotFound",
     exceptions.AuthTokenFail: "Auth.Token.Fail",
     # exceptions.AuthTokenBlocked: "Auth.Token.Blocked",

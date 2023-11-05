@@ -89,7 +89,8 @@ settings = Settings()
 
 
 def tz_now():
-    return datetime.now() + timedelta(hours=3)  # Moscow Time
+    return datetime.now()  # Moscow time on server
+    # return datetime.now() + timedelta(hours=3)  # Moscow Time
 
 
 db_dsl = {

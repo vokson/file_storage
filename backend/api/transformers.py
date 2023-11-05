@@ -13,7 +13,6 @@ def transform_exception(err: Exception) -> web.Response:
     if err.__class__ not in RESPONSE_CODES:
         raise err
 
-    logger.info(err)
 
     return web.json_response(
         {
