@@ -10,6 +10,9 @@ from backend.adapters.file_repository.db import get_db_file_repository
 from backend.adapters.account_repository.abstract import AbstractAccountRepository
 from backend.adapters.account_repository.db import get_db_account_repository
 
+from backend.adapters.link_repository.abstract import AbstractLinkRepository
+from backend.adapters.link_repository.db import get_db_link_repository
+
 # from src.adapters.broker import init_publisher
 # from src.adapters.cache import init_cache
 from backend.adapters.db import get_db_conn, release_db_conn
@@ -82,6 +85,8 @@ class UnitOfWork(AbstractUnitOfWork):
         | None = None,
         get_account_repository: Callable[..., Awaitable[AbstractAccountRepository]]
         | None = None,
+        get_link_repository: Callable[..., Awaitable[AbstractAccountRepository]]
+        | None = None,
         get_db_conn: Callable[..., Awaitable] | None = None,
         release_db_conn: Callable[..., Awaitable] | None = None,
         # release_db_conn=release_db_conn,
@@ -97,6 +102,9 @@ class UnitOfWork(AbstractUnitOfWork):
         self._get_file_repository = get_file_repository or get_db_file_repository
         self._get_account_repository = (
             get_account_repository or get_db_account_repository
+        )
+        self._get_link_repository = (
+            get_link_repository or get_db_link_repository
         )
         self._get_db_conn = get_db_conn or get_db_connection
         self._release_db_conn = release_db_conn or release_db_connection
@@ -135,6 +143,9 @@ class UnitOfWork(AbstractUnitOfWork):
                 self.file_repository = await self._get_file_repository(
                     self._file_storage, self._conn
                 )
+
+            if "link_repository" in self._bootstrap:
+                self.link_repository = await self._get_link_repository(self._conn)
 
         return self
 

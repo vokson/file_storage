@@ -1,6 +1,5 @@
 from backend.domain import commands
-from backend.service_layer.handlers.command import accounts
-from backend.service_layer.handlers.command import files
+from backend.service_layer.handlers.command import files, accounts
 
 COMMAND_HANDLERS = {
     # ACCOUNT
@@ -9,4 +8,8 @@ COMMAND_HANDLERS = {
     commands.GetFile: files.get,
     commands.DownloadFile: files.download,
     commands.UploadFile: files.upload,
+    commands.DeleteFile: files.delete,
+    commands.EraseFile: files.erase,
+    # LINK
+    # commands.AddLink: links.add_link,
 }

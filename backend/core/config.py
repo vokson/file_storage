@@ -72,8 +72,10 @@ class Settings(BaseSettings):
     # geo: GeoSettings
     # rabbitmq: RabbitSettings
     storage_path: str = Field("/storage")
+    storage_time_for_links: int = Field(3600)
     accounts_table: str = Field('accounts')
     files_table: str = Field('files')
+    links_table: str = Field('links')
 
     class Config:
         extra='allow'
@@ -88,9 +90,9 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-def tz_now():
-    return datetime.now()  # Moscow time on server
-    # return datetime.now() + timedelta(hours=3)  # Moscow Time
+def tz_now(seconds: int = 0):
+    # Moscow time on server
+    return datetime.now() + timedelta(seconds=seconds)
 
 
 db_dsl = {

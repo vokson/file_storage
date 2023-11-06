@@ -17,6 +17,14 @@ class ParameterPathWrong(ApiException):
     pass
 
 
+class ParameterBodyWrong(ApiException):
+    pass
+
+
+class RequestBodyNotJson(ApiException):
+    pass
+
+
 ### ACCOUNT
 
 

@@ -1,7 +1,7 @@
 import logging
 import os
 from uuid import UUID
-from typing import AsyncGenerator, Coroutine, Callable, Awaitable
+from typing import AsyncGenerator, Callable, Awaitable
 from pathlib import Path
 
 from aiofiles import open as aopen
@@ -20,7 +20,7 @@ class LocalFileStorage(AbstractFileStorage):
         path = self._generate_path(id)
 
         if not os.path.isfile(path):
-            raise exceptions.FileNotFound('File not found')
+            raise exceptions.FileNotFound
 
         async with aopen(path, 'rb') as f:
             while True:
@@ -44,10 +44,6 @@ class LocalFileStorage(AbstractFileStorage):
         path = self._generate_path(id)
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
 
-        print('>>>', path)
-
-        # get_bytes_coro = get_coro_with_bytes_func(CHUNK_SIZE)
-
         async with aopen(path, 'wb') as f:
             while True:
                 chunk = await get_coro_with_bytes_func(CHUNK_SIZE)
@@ -59,6 +55,17 @@ class LocalFileStorage(AbstractFileStorage):
                 await f.write(chunk)
 
         return size
+
+    async def erase(
+        self,
+        id: UUID,
+    ):
+        path = self._generate_path(id)
+
+        if not os.path.isfile(path):
+            raise exceptions.FileNotFound
+
+        Path(path).unlink(missing_ok=True)
 
 async def get_local_file_storage() -> AbstractFileStorage:
     return LocalFileStorage()

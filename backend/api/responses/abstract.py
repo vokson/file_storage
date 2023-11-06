@@ -7,3 +7,6 @@ class Response(BaseModel):
         json_encoders = {
             datetime: lambda x: str(x)
         }
+
+class EmptyResponse(Response):
+    pass

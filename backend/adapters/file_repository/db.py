@@ -4,13 +4,18 @@ from backend.domain.models import File
 from backend.adapters.file_storage.abstract import AbstractFileStorage
 from uuid import UUID
 from typing import AsyncGenerator, Coroutine, Awaitable, Callable
-from backend.core.config import settings
+from backend.core.config import settings, tz_now
 from backend.core import exceptions
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseFileRepository(AbstractFileRepository):
+    GET_BY_ID_QUERY = f"""
+                    SELECT * FROM {settings.files_table}
+                    WHERE account_id = $1 AND id = $2 AND has_deleted = FALSE;
+                    """
+
     ADD_QUERY = f"""
                     INSERT INTO {settings.files_table}
                         (
@@ -29,10 +34,18 @@ class DatabaseFileRepository(AbstractFileRepository):
                         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
                     """
 
-    GET_BY_ID_QUERY = f"""
-                    SELECT * FROM {settings.files_table}
-                    WHERE account_id = $1 AND id = $2;
+    DELETE_QUERY = f"""
+                    UPDATE {settings.files_table}
+                    SET has_deleted = TRUE, deleted = $3
+                    WHERE account_id = $1 AND id = $2 AND has_deleted = FALSE;
                     """
+
+    ERASE_QUERY = f"""
+                    UPDATE {settings.files_table}
+                    SET has_erased = TRUE, erased = $2
+                    WHERE id = $1 AND has_deleted = TRUE AND has_erased = FALSE;
+                    """
+
 
     def __init__(self, storage: AbstractFileStorage, conn):
         super().__init__(storage)
@@ -59,7 +72,7 @@ class DatabaseFileRepository(AbstractFileRepository):
             model.deleted,
             model.has_erased,
             model.erased,
-            model.account_id
+            model.account_id,
         )
 
     async def bytes(
@@ -71,11 +84,19 @@ class DatabaseFileRepository(AbstractFileRepository):
     async def store(
         self,
         file_id: UUID,
-        # bytes_gen: AsyncGenerator[bytes, None],
-        get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray]]
+        get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray]],
     ) -> int:
         logger.debug(f"Storing file {file_id}")
         return await self._storage.save(file_id, get_coro_with_bytes_func)
+
+    async def delete(self, account_id: UUID, file_id: UUID):
+        logger.info(f"Delete file with id {file_id} by account {account_id}")
+        await self._conn.execute(self.DELETE_QUERY, account_id, file_id, tz_now())
+
+    async def erase(self, file_id: UUID):
+        logger.debug(f"Erase file with id {file_id}")
+        await self._conn.execute(self.ERASE_QUERY, file_id, tz_now())
+        await self._storage.erase(file_id)
 
 
 async def get_db_file_repository(

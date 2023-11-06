@@ -8,3 +8,4 @@ class FileResponse(Response):
     name: str
     size: int
     created: datetime
+    download_link: str

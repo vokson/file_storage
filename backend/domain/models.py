@@ -37,31 +37,10 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     @classmethod
     def greater_than_zero(cls, v: int) -> int:
         if v <= 0:
-            raise ValueError("must be grater than zero")
+            raise ValueError("must be greater than zero")
         return v
 
-
-# class FileShareLink(AbstractIdModel, CreatedMixin):
-#     file_id: UUID
-#     password: str | None
-#     expire_at: datetime | None
-
-
-# class UserAction(AbstractIdModel, CreatedMixin):
-#     user_id: UUID
-#     obj_id: UUID
-#     data: dict
-#     event: str
-
-
-# class FileActionData(BaseModel):
-#     name: str
-
-
-# class FileRenameActionData(BaseModel):
-#     old_name: str
-#     new_name: str
-
-
-# class FileUserAction(UserAction):
-#     data: FileActionData
+class Link(AbstractModel, IdMixin, CreatedMixin):
+    file_id: UUID4
+    type: str = Field(pattern=r"^D$")
+    expired: datetime

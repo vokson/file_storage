@@ -1,0 +1,10 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE links
+(
+    id UUID PRIMARY KEY,
+    file_id UUID REFERENCES files (id) ON DELETE CASCADE,
+    type VARCHAR(1) NOT NULL CHECK (type = ANY(ARRAY['D'])),
+    created TIMESTAMP NOT NULL,
+    expired TIMESTAMP NOT NULL
+);

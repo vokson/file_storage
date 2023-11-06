@@ -18,3 +18,10 @@ class AbstractFileStorage(ABC):
         bytes_gen: AsyncGenerator[bytes, None],
     ) -> int:
         pass
+
+    @abstractmethod
+    async def erase(
+        self,
+        id: UUID,
+    ):
+        pass

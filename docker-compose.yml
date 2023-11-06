@@ -56,9 +56,9 @@ services:
         dockerfile: ./Dockerfile
     depends_on:
       - db
-    # deploy:
-    #   mode: replicated
-    #   replicas: 1
+    deploy:
+      mode: replicated
+      replicas: 2
     env_file:
       - ./.env
     volumes:

@@ -1,8 +1,13 @@
 from .abstract import IdUUIDMixin, Request
 
 
-class GetRequest(Request, IdUUIDMixin):
+class GetRequestPath(Request, IdUUIDMixin):
     pass
 
-class DownloadRequest(GetRequest):
+
+class DownloadRequestPath(GetRequestPath):
+    pass
+
+
+class DeleteRequestPath(GetRequestPath):
     pass

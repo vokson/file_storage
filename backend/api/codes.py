@@ -54,8 +54,8 @@ RESPONSE_CODES = {
     exceptions.AuthTokenFail: "Auth.Token.Fail",
     # exceptions.AuthTokenBlocked: "Auth.Token.Blocked",
     # exceptions.AuthTokenNotAllowed: "Auth.Token.NotAllowed",
-    # exceptions.RequestBodyNotJson: "Request.Body.NotJson",
-    # exceptions.ParameterBodyWrong: "Parameter.Body.Wrong",
+    exceptions.RequestBodyNotJson: "Request.Body.NotJson",
+    exceptions.ParameterBodyWrong: "Parameter.Body.Wrong",
     exceptions.ParameterPathWrong: "Parameter.Path.Error",
     # pydantic.ValidationError: ".Error.Wrong"
     # exceptions.ParameterQueryWrong: "Parameter.Query.Wrong",
