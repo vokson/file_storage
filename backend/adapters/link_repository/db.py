@@ -1,4 +1,5 @@
 import logging
+from uuid import UUID
 from .abstract import AbstractLinkRepository
 from backend.domain.models import Link
 from backend.core.config import settings, tz_now
@@ -8,6 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseLinkRepository(AbstractLinkRepository):
+    GET_BY_ID_QUERY = f"""
+                    SELECT * FROM {settings.links_table}
+                    WHERE id = $1 AND expired > now() AND type = $2;
+                    """
+
     ADD_QUERY = f"""
                     INSERT INTO {settings.links_table}
                         (
@@ -21,59 +27,67 @@ class DatabaseLinkRepository(AbstractLinkRepository):
                         ($1, $2, $3, $4, $5);
                     """
 
+    DELETE_BY_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE id = $1;"
+    DELETE_BY_FILE_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE file_id = $1;"
 
     def __init__(self, conn):
         self._conn = conn
 
-    async def add(self, model: Link):
-        logger.debug(f"Add link {dict(model)}")
-        await self._conn.execute(
-            self.ADD_QUERY,
-            model.id,
-            model.file_id,
-            model.type,
-            model.created,
-            model.expired
+    async def _get(self, link_id: UUID, link_type: str) -> Link:
+        logger.debug(f"Get link with id {link_id} and type {link_type}.")
+        row = await self._conn.fetchrow(self.GET_BY_ID_QUERY, link_id, link_type)
+        if not row:
+            raise exceptions.FileNotFound
+
+        return self._convert_row_to_obj(row)
+
+    async def get_download(self, link_id: UUID) -> Link:
+        return await self._get(link_id, self.DOWNLOAD_LINK_TYPE)
+
+    async def get_upload(self, link_id: UUID) -> Link:
+        return await self._get(link_id, self.UPLOAD_LINK_TYPE)
+
+    async def _add(
+        self, link_id: UUID, file_id: UUID, link_type: str, expire_period_in_sec: int
+    ) -> Link:
+        logger.debug(
+            f"""
+                    Add link with id {link_id}, file_id {file_id},
+                    type {link_type}, expire period {expire_period_in_sec}
+                    """
         )
 
-#     async def add(self, model: File):
-#         logger.debug(f"Add file {dict(model)}")
-#         await self._conn.execute(
-#             self.ADD_QUERY,
-#             model.id,
-#             model.stored_id,
-#             model.name,
-#             model.size,
-#             model.created,
-#             model.has_deleted,
-#             model.deleted,
-#             model.has_erased,
-#             model.erased,
-#             model.account_id,
-#         )
+        await self._conn.execute(
+            self.ADD_QUERY,
+            link_id,
+            file_id,
+            link_type,
+            tz_now(),
+            tz_now(expire_period_in_sec),
+        )
+        return await self._get(link_id, link_type)
 
-#     async def bytes(
-#         self, file_id: UUID
-#     ) -> Coroutine[None, None, AsyncGenerator[bytes, None]]:
-#         logger.debug(f"Reading file {file_id}")
-#         return self._storage.get(file_id)
+    async def add_download(
+        self, link_id: UUID, file_id: UUID, expire_period_in_sec: int
+    ) -> Link:
+        return await self._add(
+            link_id, file_id, self.DOWNLOAD_LINK_TYPE, expire_period_in_sec
+        )
 
-#     async def store(
-#         self,
-#         file_id: UUID,
-#         get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray]],
-#     ) -> int:
-#         logger.debug(f"Storing file {file_id}")
-#         return await self._storage.save(file_id, get_coro_with_bytes_func)
+    async def add_upload(
+        self, link_id: UUID, file_id: UUID, expire_period_in_sec: int
+    ) -> Link:
+        return await self._add(
+            link_id, file_id, self.UPLOAD_LINK_TYPE, expire_period_in_sec
+        )
 
-#     async def delete(self, account_id: UUID, file_id: UUID):
-#         logger.info(f"Delete file with id {file_id} by account {account_id}")
-#         await self._conn.execute(self.DELETE_QUERY, account_id, file_id, tz_now())
+    async def delete(self, link_id: UUID):
+        logger.debug(f"Delete link with id {link_id}")
+        await self._conn.execute(self.DELETE_BY_ID_QUERY, link_id)
 
-#     async def erase(self, file_id: UUID):
-#         logger.debug(f"Erase file with id {file_id}")
-#         await self._conn.execute(self.ERASE_QUERY, file_id, tz_now())
-#         await self._storage.erase(file_id)
+    async def delete_by_file_id(self, file_id: UUID):
+        logger.debug(f"Delete link with file_id {file_id}")
+        await self._conn.execute(self.DELETE_BY_FILE_ID_QUERY, file_id)
 
 
 async def get_db_link_repository(conn) -> AbstractLinkRepository:

@@ -18,7 +18,7 @@ def setup_routes(app):
 
 def init():
     app = web.Application(
-        middlewares=[middlewares.error_middleware, middlewares.verify_auth_token]
+        middlewares=[middlewares.error_middleware]
     )
     setup_routes(app)
     return app

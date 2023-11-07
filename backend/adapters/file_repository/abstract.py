@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from backend.domain.models import File
 from backend.adapters.file_storage.abstract import AbstractFileStorage
 from uuid import UUID
+from typing import AsyncGenerator, Coroutine, Awaitable, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -16,4 +17,38 @@ class AbstractFileRepository(ABC):
 
     @abstractmethod
     async def get(self, id: UUID) -> File:
+        pass
+
+    @abstractmethod
+    async def get_not_stored(self, id: UUID) -> File:
+        pass
+
+    @abstractmethod
+    async def add(self) -> File:
+        pass
+
+    @abstractmethod
+    async def bytes(
+        self, file_id: UUID
+    ) -> Coroutine[None, None, AsyncGenerator[bytes, None]]:
+        pass
+
+    @abstractmethod
+    async def store(
+        self,
+        file_id: UUID,
+        get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray]],
+    ) -> int:
+        pass
+
+    @abstractmethod
+    async def mark_as_stored(self, file_id: UUID, name: str, size: int) -> File:
+        pass
+
+    @abstractmethod
+    async def delete(self, account_id: UUID, file_id: UUID):
+        pass
+
+    @abstractmethod
+    async def erase(self, file_id: UUID):
         pass

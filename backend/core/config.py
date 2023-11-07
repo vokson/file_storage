@@ -63,6 +63,7 @@ class DatabaseSettings(BaseModel):
 
 
 class Settings(BaseSettings):
+    server: str
     # debug: bool
     # app_name: str
     # auth: AuthServiceSettings

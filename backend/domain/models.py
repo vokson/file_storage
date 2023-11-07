@@ -28,6 +28,8 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     name: str
     size: int
     account_id: UUID4
+    has_stored: bool = Field(False)
+    stored: datetime | None = Field(None)
     has_deleted: bool = Field(False)
     deleted: datetime | None = Field(None)
     has_erased: bool = Field(False)
@@ -36,11 +38,11 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     @field_validator("size")
     @classmethod
     def greater_than_zero(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError("must be greater than zero")
+        if v < 0:
+            raise ValueError("must be greater than zero or equal")
         return v
 
 class Link(AbstractModel, IdMixin, CreatedMixin):
     file_id: UUID4
-    type: str = Field(pattern=r"^D$")
+    type: str = Field(pattern=r"^D|U$")
     expired: datetime

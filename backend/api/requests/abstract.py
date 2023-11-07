@@ -5,5 +5,5 @@ class Request(BaseModel):
     pass
 
 
-class IdUUIDMixin(BaseModel):
-    id: UUID4
+# class IdUUIDMixin(BaseModel):
+#     id: UUID4

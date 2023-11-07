@@ -8,118 +8,7 @@ from backend.service_layer.handlers.command.dependables import COMMAND_HANDLERS
 from backend.service_layer.handlers.event.dependables import EVENT_HANDLERS
 from backend.service_layer.uow import AbstractUnitOfWork, UnitOfWork
 
-# from django.core.exceptions import ValidationError
-# from django.db import IntegrityError
-# from django.db.models import ProtectedError
-
-
-# from backend.core import  exceptions
-
-# from .command_handlers import (
-#     command_approval_handlers,
-#     command_action_handlers,
-#     command_action_type_handlers,
-#     command_action_approval_handlers,
-#     command_broker_handlers,
-#     command_cart_handlers,
-#     command_catalogue_handlers,
-#     command_document_approval_handlers,
-#     command_document_handlers,
-#     command_file_handlers,
-#     command_flow_handlers,
-#     command_folder_handlers,
-#     command_html_handlers,
-#     command_load_item_handlers,
-#     command_loader_handlers,
-#     command_mail_handlers,
-#     command_measure_handlers,
-#     command_permission_handlers,
-#     command_post_handlers,
-#     command_project_handlers,
-#     command_resource_handlers,
-#     command_resource_item_handlers,
-#     command_resource_list_group_handlers,
-#     command_resource_list_handlers,
-#     command_resource_list_item_handlers,
-#     command_role_handlers,
-#     command_service_handlers,
-#     command_setting_handlers,
-#     command_title_handlers,
-#     command_transmittal_handlers,
-#     command_user_folder_settings_handlers,
-#     command_user_handlers,
-#     command_user_search_schema_handlers,
-# )
-# from .event_handlers import (
-#     event_action_handlers,
-#     event_action_approval_handlers,
-#     event_document_approval_handlers,
-#     event_document_handlers,
-#     event_document_post_handlers,
-#     event_flow_handlers,
-#     event_mail_handlers,
-#     event_user_handlers,
-# )
-
 logger = logging.getLogger(__name__)
-
-
-# class MessageBus:
-#     def __init__(self, uow):
-#         self._uow = uow
-
-#     def handle(self, message):
-#         queue = [message]
-#         results = []
-
-#         while queue:
-#             message = queue.pop(0)
-#             # print(message)
-
-#             if isinstance(message, events.Event):
-#                 self.handle_event(queue, message)
-
-#             elif isinstance(message, commands.Command):
-#                 results.append(self.handle_command(queue, message))
-
-#             else:
-#                 logger.exception(f"{message} was not an Event or Command")
-#                 raise Exception(f"{message} was not an Event or Command")
-
-#         # self._write_to_log(results)
-#         return results
-
-#     # def _write_to_log(self, results):
-#     #     results.to_log()
-
-#     def handle_event(self, queue, event):
-#         for handler in EVENT_HANDLERS[type(event)]:
-#             try:
-#                 logger.debug("handling event %s with handler %s", event, handler)
-#                 handler(event, self._uow, self.handle)
-#                 queue.extend(self._uow.collect_new_messages())
-#             except Exception as e:
-#                 logger.exception(f"Exception {e} handling event %s", event)
-#                 continue
-
-#     def handle_command(self, queue, command):
-#         logger.debug("handling command %s", command)
-
-#         try:
-#             handler = COMMAND_HANDLERS[type(command)]
-#             result = handler(command, self._uow, self.handle)
-#             queue.extend(self._uow.collect_new_messages())
-#             return result
-
-#         except Exception as e:
-#             logger.exception(f"Exception {e} handling command %s", command)
-#             raise e
-
-#     # def _handle_exception(self, error):
-#     #     cls = RESULTS.get(error.__class__)
-
-#     #     if cls:
-#     #         return cls(str(error))
 
 
 def print_exception():
@@ -181,18 +70,6 @@ class MessageBus:
             print_exception()
             logger.error(f"Exception handling command {command}")
             raise e
-
-    # def _handle_exception(self, error):
-    #     cls = RESULTS.get(error.__class__)
-
-    #     if not cls:
-    #         for parent_class in RESULTS.keys():
-    #             if isinstance(error, parent_class):
-    #                 cls = RESULTS[parent_class]
-    #                 break
-
-    #     if cls:
-    #         return cls(str(error))
 
 
 async def get_message_bus(

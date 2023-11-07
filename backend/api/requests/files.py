@@ -1,13 +1,18 @@
-from .abstract import IdUUIDMixin, Request
+from pydantic import UUID4
+from .abstract import Request
 
 
-class GetRequestPath(Request, IdUUIDMixin):
+class GetRequestPath(Request):
+    file_id: UUID4
+
+
+class DownloadRequestPath(Request):
+    link_id: UUID4
+
+
+class UploadRequestPath(DownloadRequestPath):
     pass
 
 
-class DownloadRequestPath(GetRequestPath):
-    pass
-
-
-class DeleteRequestPath(GetRequestPath):
-    pass
+class DeleteRequestPath(Request):
+    file_id: UUID4
