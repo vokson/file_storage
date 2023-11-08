@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-pytest_plugins = "backend.tests.utils.fixtures.pg"
+pytest_plugins = "backend.tests.utils.fixtures.storage", "backend.tests.utils.fixtures.pg",
 
 
 @pytest.fixture(scope="session")

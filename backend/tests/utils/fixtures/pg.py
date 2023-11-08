@@ -4,6 +4,7 @@ import asyncpg
 import pytest_asyncio
 
 from backend.adapters.account_repository.db import DatabaseAccountRepository
+from backend.adapters.file_repository.db import DatabaseFileRepository
 from backend.core.config import db_dsl
 from backend.tools.decorators import backoff
 
@@ -35,4 +36,10 @@ async def pg(pg_pool):
 @pytest_asyncio.fixture()
 async def account_repository(pg):
     rep = DatabaseAccountRepository(pg)
+    yield rep
+
+
+@pytest_asyncio.fixture()
+async def file_repository(pg, file_storage):
+    rep = DatabaseFileRepository(file_storage, pg)
     yield rep

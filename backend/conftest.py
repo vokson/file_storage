@@ -11,7 +11,7 @@ ROOT_DIR = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, ROOT_DIR)
 
 
-pytest_plugins = "tests.utils.fixtures.pg"
+pytest_plugins = "tests.utils.fixtures.storage", "tests.utils.fixtures.pg",
 
 
 @pytest.fixture(scope="session")

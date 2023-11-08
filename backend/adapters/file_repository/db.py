@@ -85,7 +85,7 @@ class DatabaseFileRepository(AbstractFileRepository):
             f"Add empty file with account_id {account_id}, "
             f"id {file_id}, stored_id {stored_id}"
         )
-        logger.info(log)
+        logger.debug(log)
         await self._conn.execute(
             self.ADD_QUERY, account_id, file_id, stored_id, "", 0, tz_now()
         )

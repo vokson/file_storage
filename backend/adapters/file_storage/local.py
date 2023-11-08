@@ -16,8 +16,14 @@ CHUNK_SIZE = 2**16
 
 
 class LocalFileStorage(AbstractFileStorage):
+    def __init__(self, path: str) -> None:
+        self._storage_path = path
+
+    def generate_path(self, id: UUID) -> str:
+        return os.path.join(self._storage_path, str(id)[:2], str(id))
+
     async def get(self, id: UUID)-> AsyncGenerator[bytes, None]:
-        path = self._generate_path(id)
+        path = self.generate_path(id)
 
         if not os.path.isfile(path):
             raise exceptions.FileNotFound
@@ -31,17 +37,13 @@ class LocalFileStorage(AbstractFileStorage):
 
                 yield chunk
 
-    @staticmethod
-    def _generate_path(id: UUID) -> str:
-        return os.path.join(settings.storage_path, str(id)[:2], str(id))
-
     async def save(
         self,
         id: UUID,
         get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray]]
     ) -> int:
         size = 0
-        path = self._generate_path(id)
+        path = self.generate_path(id)
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
 
         async with aopen(path, 'wb') as f:
@@ -60,7 +62,7 @@ class LocalFileStorage(AbstractFileStorage):
         self,
         id: UUID,
     ):
-        path = self._generate_path(id)
+        path = self.generate_path(id)
 
         if not os.path.isfile(path):
             raise exceptions.FileNotFound
@@ -68,4 +70,4 @@ class LocalFileStorage(AbstractFileStorage):
         Path(path).unlink(missing_ok=True)
 
 async def get_local_file_storage() -> AbstractFileStorage:
-    return LocalFileStorage()
+    return LocalFileStorage(settings.storage_path)

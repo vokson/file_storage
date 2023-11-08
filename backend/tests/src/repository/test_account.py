@@ -10,7 +10,7 @@ from backend.tests.src.repository.mixins import AccountMixin
 logger = logging.getLogger()
 
 
-class TestAccount(AccountMixin):
+class TestAccountRepository(AccountMixin):
     @pytest_asyncio.fixture(autouse=True)
     async def setup(self, pg):
         await self._create_default_account(pg)

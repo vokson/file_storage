@@ -1,13 +1,28 @@
 from datetime import datetime
 from uuid import uuid4
 
-from pydantic import UUID4, BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    UUID4,
+    BaseModel,
+    Field,
+    field_validator,
+    model_serializer,
+)
+from typing import Any
 
 from backend.core.config import tz_now
 
 
 class AbstractModel(BaseModel):
-    model_config = ConfigDict(json_encoders={datetime: lambda x: str(x)})
+    #  Не использовал json_encoders из-за Deprecated
+    @model_serializer
+    def datetime_to_str(self) -> dict[str, Any]:
+        result = {}
+        for key in [x for x in self.__dict__.keys() if not x.startswith("__")]:
+            value = getattr(self, key)
+            result[key] = str(value) if type(value) is datetime else value
+
+        return result
 
 
 class IdMixin(BaseModel):
