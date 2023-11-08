@@ -1,8 +1,10 @@
-from aiohttp import web
 from uuid import UUID
 
-from .handlers import files, common
+from aiohttp import web
+
 from backend.core.config import settings
+
+from .handlers import common, files
 
 ROUTES = [
     web.get("/echo/", common.echo),

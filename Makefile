@@ -1,9 +1,16 @@
 up:
-	docker compose up -d --build
+	sudo docker compose up -d --build
+stop:
+	sudo docker compose stop
 migrate:
-	docker compose exec --workdir /backend/migrations backend python migrate.py
+	sudo docker compose exec --workdir /backend/migrations backend python migrate.py
 revert:
-	docker compose exec --workdir /backend/migrations backend python migrate.py -r
+	sudo docker compose exec --workdir /backend/migrations backend python migrate.py -r
+test:
+	sudo docker compose -f ./backend/tests/docker-compose.yml  --env-file=./.env up --build
+test_down:
+	sudo docker compose -f ./backend/tests/docker-compose.yml  --env-file=./.env down -v
+
 # pollute:
 # 	docker compose exec --workdir /opt/app/src/migrations auth python pollute.py && \
 # 	docker compose exec --workdir /opt/app/src/migrations storage python pollute.py

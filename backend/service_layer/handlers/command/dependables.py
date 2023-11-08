@@ -1,5 +1,5 @@
 from backend.domain import commands
-from backend.service_layer.handlers.command import files, accounts
+from backend.service_layer.handlers.command import accounts, files
 
 COMMAND_HANDLERS = {
     # ACCOUNT

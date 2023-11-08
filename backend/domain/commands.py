@@ -1,7 +1,8 @@
-from pydantic import UUID4
-from uuid import UUID
-from typing import Callable, Awaitable
 from dataclasses import dataclass
+from typing import Awaitable, Callable
+from uuid import UUID
+
+from pydantic import UUID4
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 

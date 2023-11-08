@@ -6,10 +6,9 @@ from aiohttp import web
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-from backend.core.config import settings
 from backend.api import middlewares
 from backend.api.v1.routes import ROUTES
-
+from backend.core.config import settings
 
 
 def setup_routes(app):

@@ -62,6 +62,7 @@ services:
       - file_storage:/storage
     entrypoint:
       sh -c "pip install -r tests/requirements.txt
+      && python migrations/migrate.py
       && pytest tests/src"
 
   # http_2:

@@ -1,7 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
-from backend.domain.models import Account
 from uuid import UUID
+
+from backend.domain.models import Account
 
 logger = logging.getLogger(__name__)
 

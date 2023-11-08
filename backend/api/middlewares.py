@@ -5,8 +5,8 @@ from uuid import UUID
 from aiohttp import web
 from pydantic import BaseModel, ValidationError
 
-from backend.api.transformers import transform_exception
 from backend.api.dependables import get_bus
+from backend.api.transformers import transform_exception
 from backend.core import exceptions
 from backend.domain import commands
 

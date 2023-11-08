@@ -1,7 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
-from backend.domain.models import Link
 from uuid import UUID
+
+from backend.domain.models import Link
 
 logger = logging.getLogger(__name__)
 
@@ -9,6 +10,9 @@ logger = logging.getLogger(__name__)
 class AbstractLinkRepository(ABC):
     DOWNLOAD_LINK_TYPE = "D"
     UPLOAD_LINK_TYPE = "U"
+
+    def __init__(self, conn):
+        self._conn = conn
 
     def _convert_row_to_obj(self, row) -> Link:
         return Link(**dict(row.items()))

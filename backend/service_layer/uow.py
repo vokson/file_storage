@@ -1,21 +1,19 @@
 from abc import ABC, abstractmethod
 from typing import Awaitable, Callable
 
-from backend.adapters.file_storage.abstract import AbstractFileStorage
-from backend.adapters.file_storage.local import get_local_file_storage
-
-from backend.adapters.file_repository.abstract import AbstractFileRepository
-from backend.adapters.file_repository.db import get_db_file_repository
-
-from backend.adapters.account_repository.abstract import AbstractAccountRepository
+from backend.adapters.account_repository.abstract import \
+    AbstractAccountRepository
 from backend.adapters.account_repository.db import get_db_account_repository
-
-from backend.adapters.link_repository.abstract import AbstractLinkRepository
-from backend.adapters.link_repository.db import get_db_link_repository
-
 # from src.adapters.broker import init_publisher
 # from src.adapters.cache import init_cache
 from backend.adapters.db import get_db_conn, release_db_conn
+from backend.adapters.file_repository.abstract import AbstractFileRepository
+from backend.adapters.file_repository.db import get_db_file_repository
+from backend.adapters.file_storage.abstract import AbstractFileStorage
+from backend.adapters.file_storage.local import get_local_file_storage
+from backend.adapters.link_repository.abstract import AbstractLinkRepository
+from backend.adapters.link_repository.db import get_db_link_repository
+from backend.core.config import db_dsl
 
 # from src.adapters.geoip import init_geo_ip
 # from src.adapters.repositories.cdn_server import CdnServerRepository
@@ -26,7 +24,6 @@ from backend.adapters.db import get_db_conn, release_db_conn
 # from src.core.config import (cache_dsl, db_dsl, get_s3_dsl, rabbit_args,
 #                              settings)
 
-from backend.core.config import db_dsl
 
 
 def get_db_connection():

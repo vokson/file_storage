@@ -1,9 +1,11 @@
 import logging
 from uuid import UUID
-from .abstract import AbstractLinkRepository
-from backend.domain.models import Link
-from backend.core.config import settings, tz_now
+
 from backend.core import exceptions
+from backend.core.config import settings, tz_now
+from backend.domain.models import Link
+
+from .abstract import AbstractLinkRepository
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +32,6 @@ class DatabaseLinkRepository(AbstractLinkRepository):
     DELETE_BY_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE id = $1;"
     DELETE_BY_FILE_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE file_id = $1;"
 
-    def __init__(self, conn):
-        self._conn = conn
 
     async def _get(self, link_id: UUID, link_type: str) -> Link:
         logger.debug(f"Get link with id {link_id} and type {link_type}.")

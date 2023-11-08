@@ -1,9 +1,9 @@
 import logging
 from uuid import UUID
 
+from backend.core import exceptions
 from backend.domain import commands
 from backend.service_layer.uow import AbstractUnitOfWork
-from backend.core import exceptions
 
 logger = logging.getLogger(__name__)
 

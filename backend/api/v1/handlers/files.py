@@ -1,16 +1,14 @@
-from aiohttp import web
+from typing import Awaitable, Callable
 from uuid import UUID
-from typing import Callable, Awaitable
 
-from backend.api.dependables import get_bus
+from aiohttp import web
+
 from backend.api import middlewares
-from backend.api.transformers import transform_file_response, transform_json_response
-from backend.api.requests.files import (
-    GetRequestPath,
-    DownloadRequestPath,
-    UploadRequestPath,
-    DeleteRequestPath,
-)
+from backend.api.dependables import get_bus
+from backend.api.requests.files import (DeleteRequestPath, DownloadRequestPath,
+                                        GetRequestPath, UploadRequestPath)
+from backend.api.transformers import (transform_file_response,
+                                      transform_json_response)
 from backend.domain import commands
 from backend.service_layer.message_bus import MessageBus
 

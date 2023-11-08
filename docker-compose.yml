@@ -22,19 +22,6 @@ services:
       - "${DB__PORT}:${DB__PORT}"
     command: -p ${DB__PORT}
 
-  # storage_db:
-  #   image: postgres:14.5-alpine
-  #   volumes:
-  #     - storage_db_data:/var/lib/postgresql/data/
-  #   restart: always
-  #   environment:
-  #     - POSTGRES_USER=${STORAGE_DB__USER}
-  #     - POSTGRES_PASSWORD=${STORAGE_DB__PASSWORD}
-  #     - POSTGRES_DB=${STORAGE_DB__DBNAME}
-  #   ports:
-  #     - "${STORAGE_DB__PORT}:${STORAGE_DB__PORT}"
-  #   command: -p ${STORAGE_DB__PORT}
-
   nginx:
     image: nginx:1.25
     depends_on:

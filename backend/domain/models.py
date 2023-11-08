@@ -1,12 +1,13 @@
-from uuid import uuid4
 from datetime import datetime
-from pydantic import UUID4, BaseModel, Field, field_validator
+from uuid import uuid4
+
+from pydantic import UUID4, BaseModel, ConfigDict, Field, field_validator
+
 from backend.core.config import tz_now
 
 
 class AbstractModel(BaseModel):
-    class Config:
-        json_encoders = {datetime: lambda x: str(x)}
+    model_config = ConfigDict(json_encoders={datetime: lambda x: str(x)})
 
 
 class IdMixin(BaseModel):
@@ -41,6 +42,7 @@ class File(AbstractModel, IdMixin, CreatedMixin):
         if v < 0:
             raise ValueError("must be greater than zero or equal")
         return v
+
 
 class Link(AbstractModel, IdMixin, CreatedMixin):
     file_id: UUID4
