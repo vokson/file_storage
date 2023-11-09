@@ -1,18 +1,21 @@
+import io
 import logging
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
 import pytest_asyncio
 
-from backend.tests.src.repository import mixins
 from backend.core import exceptions
 from backend.core.config import settings
+from backend.tests.src.repository import mixins
+from backend.tests.src.storage.mixins import FileOperationMixin
 
 logger = logging.getLogger()
 
 
 class TestFileRepository(
-    mixins.CommonMixin, mixins.AccountMixin, mixins.FileMixin
+    mixins.CommonMixin, mixins.AccountMixin, mixins.FileMixin, FileOperationMixin
 ):
     @pytest_asyncio.fixture(autouse=True)
     async def setup(self, pg):
@@ -77,6 +80,10 @@ class TestFileRepository(
         assert model.account_id == self._account_id
         assert model.name == name
         assert model.size == size
+        assert model.created is not None
+        assert model.stored is None
+        assert model.deleted is None
+        assert model.erased is None
         assert model.has_stored == False
         assert model.has_deleted == False
         assert model.has_erased == False
@@ -100,6 +107,75 @@ class TestFileRepository(
         assert row is not None
         assert model.name == name
         assert model.size == size
+        assert model.created is not None
+        assert model.stored is not None
+        assert model.deleted is None
+        assert model.erased is None
         assert model.has_stored == True
         assert model.has_deleted == False
         assert model.has_erased == False
+
+    @pytest.mark.asyncio
+    async def test_deleted(self, file_repository):
+        name = "TEST NAME"
+        size = 999
+        query = f"""
+                SELECT * FROM {settings.files_table}
+                WHERE id = $1 AND name = $2 AND size = $3
+                AND created IS NOT NULL
+                AND has_stored = TRUE AND stored IS NOT NULL
+                AND has_deleted = TRUE AND deleted IS NOT NULL
+                AND has_erased = FALSE AND erased IS NULL
+                """
+        model = await file_repository.add(self._account_id)
+        model = await file_repository.mark_as_stored(model.id, name, size)
+        await file_repository.delete(self._account_id, model.id)
+        row = await self._conn.fetchrow(query, model.id, name, size)
+
+        assert row is not None
+
+    @pytest.mark.asyncio
+    async def test_erased(self, file_repository, file_storage):
+        name = "TEST NAME"
+        data = b'1234567890'
+        query = f"""
+                SELECT * FROM {settings.files_table}
+                WHERE id = $1 AND name = $2 AND size = $3
+                AND created IS NOT NULL
+                AND has_stored = TRUE AND stored IS NOT NULL
+                AND has_deleted = TRUE AND deleted IS NOT NULL
+                AND has_erased = TRUE AND erased IS NOT NULL
+                """
+        model = await file_repository.add(self._account_id)
+        path = file_storage.generate_path(model.stored_id)
+
+        size = await file_repository.store(model.id, self._get_coro_with_bytes(data))
+        assert True == Path(path).is_file()
+
+        model = await file_repository.mark_as_stored(model.id, name, size)
+        await file_repository.delete(self._account_id, model.id)
+
+        await file_repository.erase(model.id)
+        assert False == Path(path).is_file()
+
+        row = await self._conn.fetchrow(query, model.id, name, size)
+        assert row is not None
+
+    @pytest.mark.asyncio
+    async def test_bytes(self, file_repository, file_storage):
+        name = "TEST NAME"
+        data = b'1234567890'
+
+        model = await file_repository.add(self._account_id)
+        path = file_storage.generate_path(model.stored_id)
+
+        size = await file_repository.store(model.id, self._get_coro_with_bytes(data))
+        assert True == Path(path).is_file()
+
+        model = await file_repository.mark_as_stored(model.id, name, size)
+        gen = await file_repository.bytes(model.id)
+        f = io.BytesIO()
+        async for chunk in gen:
+            f.write(chunk)
+
+        assert data == f.getvalue()

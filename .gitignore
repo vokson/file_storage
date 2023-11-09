@@ -14,6 +14,5 @@ __pycache__/
 *.env.swo
 *.log
 
-storage/
 temp/*
 cert/*

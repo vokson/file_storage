@@ -27,13 +27,13 @@ class AbstractLinkRepository(ABC):
 
     @abstractmethod
     async def add_download(
-        self, link_id: UUID, file_id: UUID, expire_period_in_sec: int
+        self, file_id: UUID, expire_period_in_sec: int
     ) -> Link:
         pass
 
     @abstractmethod
     async def add_upload(
-        self, link_id: UUID, file_id: UUID, expire_period_in_sec: int
+        self, file_id: UUID, expire_period_in_sec: int
     ) -> Link:
         pass
 

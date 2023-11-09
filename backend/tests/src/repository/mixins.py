@@ -1,9 +1,10 @@
 from collections import OrderedDict
-from uuid import UUID, uuid4
 from datetime import datetime
+from uuid import UUID, uuid4
 
 from backend.core.config import settings, tz_now
 from backend.domain.models import BaseModel
+
 
 class CommonMixin:
     @classmethod
@@ -168,4 +169,57 @@ class FileMixin:
     async def _create_default_deleted_file(cls, conn, account_id) -> UUID:
         return await cls._create_file(
             conn, *cls.DEFAULT_DELETED_FILE_PARAMETERS.values(), account_id
+        )
+
+class LinkMixin:
+    DEFAULT_DOWNLOAD_LINK_PARAMETERS = OrderedDict(
+        [
+            ("id", uuid4()),
+            ("type", "D"),
+            ("created", tz_now()),
+            ("expired", tz_now(settings.storage_time_for_links)),
+        ]
+    )
+
+    DEFAULT_UPLOAD_LINK_PARAMETERS = OrderedDict(
+        [
+            ("id", uuid4()),
+            ("type", "U"),
+            ("created", tz_now()),
+            ("expired", tz_now(settings.storage_time_for_links)),
+        ]
+    )
+
+    LINK_ADD_QUERY = f"""
+                    INSERT INTO {settings.links_table}
+                        (
+                            id,
+                            type,
+                            created,
+                            expired,
+                            file_id
+                        )
+                    VALUES
+                        ($1, $2, $3, $4, $5);
+                    """
+
+    @classmethod
+    async def _create_link(
+        cls, conn, id: UUID, type: str, created: datetime, expired: datetime, file_id: UUID
+    ) -> UUID:
+        await conn.execute(
+            cls.LINK_ADD_QUERY, id, type, created, expired, file_id
+        )
+        return id
+
+    @classmethod
+    async def _create_default_download_link(cls, conn, file_id: UUID) -> UUID:
+        return await cls._create_link(
+            conn, *cls.DEFAULT_DOWNLOAD_LINK_PARAMETERS.values(), file_id
+        )
+
+    @classmethod
+    async def _create_default_upload_link(cls, conn, file_id: UUID) -> UUID:
+        return await cls._create_link(
+            conn, *cls.DEFAULT_UPLOAD_LINK_PARAMETERS.values(), file_id
         )

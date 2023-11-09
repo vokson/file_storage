@@ -40,7 +40,7 @@ class LocalFileStorage(AbstractFileStorage):
     async def save(
         self,
         id: UUID,
-        get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray]]
+        get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray|None]]
     ) -> int:
         size = 0
         path = self.generate_path(id)

@@ -1,14 +1,8 @@
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
 
-from pydantic import (
-    UUID4,
-    BaseModel,
-    Field,
-    field_validator,
-    model_serializer,
-)
-from typing import Any
+from pydantic import UUID4, BaseModel, Field, field_validator, model_serializer
 
 from backend.core.config import tz_now
 

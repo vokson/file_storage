@@ -1,5 +1,5 @@
 import logging
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from backend.core import exceptions
 from backend.core.config import settings, tz_now
@@ -48,8 +48,9 @@ class DatabaseLinkRepository(AbstractLinkRepository):
         return await self._get(link_id, self.UPLOAD_LINK_TYPE)
 
     async def _add(
-        self, link_id: UUID, file_id: UUID, link_type: str, expire_period_in_sec: int
+        self, file_id: UUID, link_type: str, expire_period_in_sec: int
     ) -> Link:
+        link_id = uuid4()
         logger.debug(
             f"""
                     Add link with id {link_id}, file_id {file_id},
@@ -68,17 +69,17 @@ class DatabaseLinkRepository(AbstractLinkRepository):
         return await self._get(link_id, link_type)
 
     async def add_download(
-        self, link_id: UUID, file_id: UUID, expire_period_in_sec: int
+        self, file_id: UUID, expire_period_in_sec: int
     ) -> Link:
         return await self._add(
-            link_id, file_id, self.DOWNLOAD_LINK_TYPE, expire_period_in_sec
+            file_id, self.DOWNLOAD_LINK_TYPE, expire_period_in_sec
         )
 
     async def add_upload(
-        self, link_id: UUID, file_id: UUID, expire_period_in_sec: int
+        self, file_id: UUID, expire_period_in_sec: int
     ) -> Link:
         return await self._add(
-            link_id, file_id, self.UPLOAD_LINK_TYPE, expire_period_in_sec
+            file_id, self.UPLOAD_LINK_TYPE, expire_period_in_sec
         )
 
     async def delete(self, link_id: UUID):
