@@ -37,14 +37,14 @@ class AccountMixin:
     @classmethod
     async def _create_account(
         cls, conn, id: UUID, name: str, auth_token: UUID, is_active: bool
-    ) -> UUID:
+    ) -> tuple[UUID, UUID]:
         await conn.execute(
             cls.ACCOUNT_ADD_QUERY, id, name, auth_token, is_active
         )
-        return id
+        return id, auth_token
 
     @classmethod
-    async def _create_default_account(cls, conn) -> UUID:
+    async def _create_default_account(cls, conn) -> tuple[UUID, UUID]:
         return await cls._create_account(
             conn, *cls.DEFAULT_ACCOUNT_PARAMETERS.values()
         )

@@ -18,49 +18,49 @@ class TestFileRepository(
     mixins.CommonMixin, mixins.AccountMixin, mixins.FileMixin, FileOperationMixin
 ):
     @pytest_asyncio.fixture(autouse=True)
-    async def setup(self, pg):
-        self._conn = pg
-        self._account_id = await self._create_default_account(pg)
-        self._file_id = await self._create_default_file(pg, self._account_id)
+    async def setup(self, rollback_pg):
+        self._conn = rollback_pg
+        self._account_id, _ = await self._create_default_account(rollback_pg)
+        self._file_id = await self._create_default_file(rollback_pg, self._account_id)
         self._not_stored_file_id = await self._create_default_not_stored_file(
-            pg, self._account_id
+            rollback_pg, self._account_id
         )
         self._deleted_file_id = await self._create_default_deleted_file(
-            pg, self._account_id
+            rollback_pg, self._account_id
         )
 
     @pytest.mark.asyncio
-    async def test_get_by_id(self, file_repository):
-        model = await file_repository.get(self._file_id)
+    async def test_get_by_id(self, rollback_file_repository):
+        model = await rollback_file_repository.get(self._file_id)
         self._cmp(self.DEFAULT_FILE_PARAMETERS, model)
 
     @pytest.mark.asyncio
-    async def test_get_by_id_if_not_exist(self, file_repository):
+    async def test_get_by_id_if_not_exist(self, rollback_file_repository):
         with pytest.raises(exceptions.FileNotFound):
-            await file_repository.get(uuid4())
+            await rollback_file_repository.get(uuid4())
 
     @pytest.mark.asyncio
-    async def test_get_by_id_if_not_stored(self, file_repository):
+    async def test_get_by_id_if_not_stored(self, rollback_file_repository):
         with pytest.raises(exceptions.FileNotFound):
-            await file_repository.get(self._not_stored_file_id)
+            await rollback_file_repository.get(self._not_stored_file_id)
 
     @pytest.mark.asyncio
-    async def test_get_by_id_if_deleted(self, file_repository):
+    async def test_get_by_id_if_deleted(self, rollback_file_repository):
         with pytest.raises(exceptions.FileNotFound):
-            await file_repository.get(self._deleted_file_id)
+            await rollback_file_repository.get(self._deleted_file_id)
 
     @pytest.mark.asyncio
-    async def test_get_not_stored_by_id(self, file_repository):
-        model = await file_repository.get_not_stored(self._not_stored_file_id)
+    async def test_get_not_stored_by_id(self, rollback_file_repository):
+        model = await rollback_file_repository.get_not_stored(self._not_stored_file_id)
         self._cmp(self.DEFAULT_NOT_STORED_FILE_PARAMETERS, model)
 
     @pytest.mark.asyncio
-    async def test_get_not_stored_by_id_if_not_exist(self, file_repository):
+    async def test_get_not_stored_by_id_if_not_exist(self, rollback_file_repository):
         with pytest.raises(exceptions.FileNotFound):
-            await file_repository.get_not_stored(uuid4())
+            await rollback_file_repository.get_not_stored(uuid4())
 
     @pytest.mark.asyncio
-    async def test_add(self, file_repository):
+    async def test_add(self, rollback_file_repository):
         name = ""
         size = 0
         query = f"""
@@ -71,7 +71,7 @@ class TestFileRepository(
                 AND has_deleted = FALSE AND deleted IS NULL
                 AND has_erased = FALSE AND erased IS NULL
                 """
-        model = await file_repository.add(self._account_id)
+        model = await rollback_file_repository.add(self._account_id)
         row = await self._conn.fetchrow(
             query, self._account_id, model.id, name, size
         )
@@ -89,7 +89,7 @@ class TestFileRepository(
         assert model.has_erased == False
 
     @pytest.mark.asyncio
-    async def test_mark_stored(self, file_repository):
+    async def test_mark_stored(self, rollback_file_repository):
         name = "TEST NAME"
         size = 999
         query = f"""
@@ -100,8 +100,8 @@ class TestFileRepository(
                 AND has_deleted = FALSE AND deleted IS NULL
                 AND has_erased = FALSE AND erased IS NULL
                 """
-        model = await file_repository.add(self._account_id)
-        model = await file_repository.mark_as_stored(model.id, name, size)
+        model = await rollback_file_repository.add(self._account_id)
+        model = await rollback_file_repository.mark_as_stored(model.id, name, size)
         row = await self._conn.fetchrow(query, model.id, name, size)
 
         assert row is not None
@@ -116,7 +116,7 @@ class TestFileRepository(
         assert model.has_erased == False
 
     @pytest.mark.asyncio
-    async def test_deleted(self, file_repository):
+    async def test_deleted(self, rollback_file_repository):
         name = "TEST NAME"
         size = 999
         query = f"""
@@ -127,15 +127,15 @@ class TestFileRepository(
                 AND has_deleted = TRUE AND deleted IS NOT NULL
                 AND has_erased = FALSE AND erased IS NULL
                 """
-        model = await file_repository.add(self._account_id)
-        model = await file_repository.mark_as_stored(model.id, name, size)
-        await file_repository.delete(self._account_id, model.id)
+        model = await rollback_file_repository.add(self._account_id)
+        model = await rollback_file_repository.mark_as_stored(model.id, name, size)
+        await rollback_file_repository.delete(self._account_id, model.id)
         row = await self._conn.fetchrow(query, model.id, name, size)
 
         assert row is not None
 
     @pytest.mark.asyncio
-    async def test_erased(self, file_repository, file_storage):
+    async def test_erased(self, rollback_file_repository, file_storage):
         name = "TEST NAME"
         data = b'1234567890'
         query = f"""
@@ -146,34 +146,34 @@ class TestFileRepository(
                 AND has_deleted = TRUE AND deleted IS NOT NULL
                 AND has_erased = TRUE AND erased IS NOT NULL
                 """
-        model = await file_repository.add(self._account_id)
+        model = await rollback_file_repository.add(self._account_id)
         path = file_storage.generate_path(model.stored_id)
 
-        size = await file_repository.store(model.id, self._get_coro_with_bytes(data))
+        size = await rollback_file_repository.store(model.id, self._get_coro_with_bytes(data))
         assert True == Path(path).is_file()
 
-        model = await file_repository.mark_as_stored(model.id, name, size)
-        await file_repository.delete(self._account_id, model.id)
+        model = await rollback_file_repository.mark_as_stored(model.id, name, size)
+        await rollback_file_repository.delete(self._account_id, model.id)
 
-        await file_repository.erase(model.id)
+        await rollback_file_repository.erase(model.id)
         assert False == Path(path).is_file()
 
         row = await self._conn.fetchrow(query, model.id, name, size)
         assert row is not None
 
     @pytest.mark.asyncio
-    async def test_bytes(self, file_repository, file_storage):
+    async def test_bytes(self, rollback_file_repository, file_storage):
         name = "TEST NAME"
         data = b'1234567890'
 
-        model = await file_repository.add(self._account_id)
+        model = await rollback_file_repository.add(self._account_id)
         path = file_storage.generate_path(model.stored_id)
 
-        size = await file_repository.store(model.id, self._get_coro_with_bytes(data))
+        size = await rollback_file_repository.store(model.id, self._get_coro_with_bytes(data))
         assert True == Path(path).is_file()
 
-        model = await file_repository.mark_as_stored(model.id, name, size)
-        gen = await file_repository.bytes(model.id)
+        model = await rollback_file_repository.mark_as_stored(model.id, name, size)
+        gen = await rollback_file_repository.bytes(model.id)
         f = io.BytesIO()
         async for chunk in gen:
             f.write(chunk)

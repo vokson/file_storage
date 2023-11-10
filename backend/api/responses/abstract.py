@@ -1,13 +1,9 @@
-from datetime import datetime
-
-from pydantic import BaseModel
+from backend.domain.models import AbstractModel
 
 
-class Response(BaseModel):
-     class Config:
-        json_encoders = {
-            datetime: lambda x: str(x)
-        }
+class Response(AbstractModel):
+    pass
+
 
 class EmptyResponse(Response):
     pass

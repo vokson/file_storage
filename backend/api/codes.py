@@ -49,14 +49,14 @@ from backend.core import exceptions
 # }
 
 RESPONSE_CODES = {
-    ConnectionResetError: "Connection.Error.Reset",
-    exceptions.FileNotFound: "File.Error.NotFound",
-    exceptions.AuthTokenFail: "Auth.Token.Fail",
+    ConnectionResetError: (404, "Connection.Error.Reset"),
+    exceptions.FileNotFound: (404, "File.Error.NotFound"),
+    exceptions.AuthTokenFail: (401, "Auth.Token.Fail"),
+    exceptions.RequestBodyNotJson: (400, "Request.Body.NotJson"),
+    exceptions.ParameterBodyWrong: (400, "Parameter.Body.Wrong"),
+    exceptions.ParameterPathWrong: (400, "Parameter.Path.Error"),
     # exceptions.AuthTokenBlocked: "Auth.Token.Blocked",
     # exceptions.AuthTokenNotAllowed: "Auth.Token.NotAllowed",
-    exceptions.RequestBodyNotJson: "Request.Body.NotJson",
-    exceptions.ParameterBodyWrong: "Parameter.Body.Wrong",
-    exceptions.ParameterPathWrong: "Parameter.Path.Error",
     # pydantic.ValidationError: ".Error.Wrong"
     # exceptions.ParameterQueryWrong: "Parameter.Query.Wrong",
 }

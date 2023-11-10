@@ -1,3 +1,4 @@
+import logging
 from functools import wraps
 from typing import Awaitable, Callable, Type
 from uuid import UUID
@@ -9,6 +10,8 @@ from backend.api.dependables import get_bus
 from backend.api.transformers import transform_exception
 from backend.core import exceptions
 from backend.domain import commands
+
+logger = logging.getLogger(__name__)
 
 
 @web.middleware
@@ -109,8 +112,13 @@ def validate_file_body():
             ):
                 raise exceptions.ParameterBodyWrong
 
-            reader = await request.multipart()
-            field = await reader.next()
+            try:
+                reader = await request.multipart()
+                field = await reader.next()
+
+            except Exception as e:
+                logger.info(e)
+                raise exceptions.ParameterBodyWrong
 
             if field.name != "file":
                 raise exceptions.ParameterBodyWrong

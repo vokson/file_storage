@@ -14,13 +14,9 @@ def transform_exception(err: Exception) -> web.Response:
     if err.__class__ not in RESPONSE_CODES:
         raise err
 
-    return web.json_response(
-        {
-            "success": False,
-            "code": RESPONSE_CODES[err.__class__],
-        },
-        status=200,
-    )
+    status, code = RESPONSE_CODES[err.__class__]
+
+    return web.Response(text=code, status=status)
 
 
 async def transform_json_response(r: Response) -> web.Response:
@@ -28,15 +24,19 @@ async def transform_json_response(r: Response) -> web.Response:
         headers={
             "Content-Type": "application/json; charset=utf-8",
         },
-        body=json.dumps(
-            {"success": True, "data": r.model_dump()}, default=lambda x: str(x)
-        ),
+        # body=json.dumps(
+        #     {"success": True, "data": r.model_dump()}, default=lambda x: str(x)
+        # ),
+        body=r.model_dump_json(),
     )
     return response
 
 
 async def transform_file_response(
-    request: web.Request, filename: str, size: int, gen: AsyncGenerator[bytes, None]
+    request: web.Request,
+    filename: str,
+    size: int,
+    gen: AsyncGenerator[bytes, None],
 ) -> web.StreamResponse:
     response = web.StreamResponse(
         headers={

@@ -1,4 +1,5 @@
 import logging
+import json
 
 import asyncpg
 import pytest_asyncio
@@ -23,8 +24,16 @@ async def pg_pool():
 
 
 @pytest_asyncio.fixture()
-async def pg(pg_pool):
+async def rollback_pg(pg_pool):
     conn = await pg_pool.acquire()
+
+    await conn.set_type_codec(
+        "jsonb",
+        encoder=lambda x: x.json(),
+        decoder=json.loads,
+        schema="pg_catalog",
+    )
+
     tr = conn.transaction()
     await tr.start()
 
@@ -35,17 +44,46 @@ async def pg(pg_pool):
 
 
 @pytest_asyncio.fixture()
+async def pg(pg_pool):
+    conn = await pg_pool.acquire()
+
+    await conn.set_type_codec(
+        "jsonb",
+        encoder=lambda x: x.json(),
+        decoder=json.loads,
+        schema="pg_catalog",
+    )
+
+    yield conn
+
+    await pg_pool.release(conn)
+
+
+@pytest_asyncio.fixture()
 async def account_repository(pg):
-    rep = DatabaseAccountRepository(pg)
-    yield rep
+    return DatabaseAccountRepository(pg)
 
 
 @pytest_asyncio.fixture()
 async def file_repository(pg, file_storage):
-    rep = DatabaseFileRepository(file_storage, pg)
-    yield rep
+    return DatabaseFileRepository(file_storage, pg)
+
 
 @pytest_asyncio.fixture()
 async def link_repository(pg):
-    rep = DatabaseLinkRepository(pg)
-    yield rep
+    return DatabaseLinkRepository(pg)
+
+
+@pytest_asyncio.fixture()
+async def rollback_account_repository(rollback_pg):
+    return DatabaseAccountRepository(rollback_pg)
+
+
+@pytest_asyncio.fixture()
+async def rollback_file_repository(rollback_pg, file_storage):
+    return DatabaseFileRepository(file_storage, rollback_pg)
+
+
+@pytest_asyncio.fixture()
+async def rollback_link_repository(rollback_pg):
+    return DatabaseLinkRepository(rollback_pg)

@@ -15,43 +15,43 @@ class TestLinkRepository(
     mixins.CommonMixin, mixins.AccountMixin, mixins.LinkMixin, mixins.FileMixin
 ):
     @pytest_asyncio.fixture(autouse=True)
-    async def setup(self, pg):
-        self._conn = pg
-        self._account_id = await self._create_default_account(pg)
-        self._file_id = await self._create_default_file(pg, self._account_id)
+    async def setup(self, rollback_pg):
+        self._conn = rollback_pg
+        self._account_id, _ = await self._create_default_account(rollback_pg)
+        self._file_id = await self._create_default_file(rollback_pg, self._account_id)
 
     @pytest.mark.asyncio
-    async def test_get_download(self, link_repository):
+    async def test_get_download(self, rollback_link_repository):
         link_id = await self._create_default_download_link(
             self._conn, self._file_id
         )
-        model = await link_repository.get_download(link_id)
+        model = await rollback_link_repository.get_download(link_id)
 
         self._cmp(self.DEFAULT_DOWNLOAD_LINK_PARAMETERS, model)
 
     @pytest.mark.asyncio
-    async def test_get_download_if_not_exist(self, link_repository):
+    async def test_get_download_if_not_exist(self, rollback_link_repository):
         with pytest.raises(exceptions.FileNotFound):
-            await link_repository.get_download(uuid4())
+            await rollback_link_repository.get_download(uuid4())
 
     @pytest.mark.asyncio
-    async def test_get_upload(self, link_repository):
+    async def test_get_upload(self, rollback_link_repository):
         link_id = await self._create_default_upload_link(
             self._conn, self._file_id
         )
-        model = await link_repository.get_upload(link_id)
+        model = await rollback_link_repository.get_upload(link_id)
 
         self._cmp(self.DEFAULT_UPLOAD_LINK_PARAMETERS, model)
 
     @pytest.mark.asyncio
-    async def test_get_upload_if_not_exist(self, link_repository):
+    async def test_get_upload_if_not_exist(self, rollback_link_repository):
         with pytest.raises(exceptions.FileNotFound):
-            await link_repository.get_upload(uuid4())
+            await rollback_link_repository.get_upload(uuid4())
 
     @pytest.mark.asyncio
-    async def test_add_download(self, link_repository):
+    async def test_add_download(self, rollback_link_repository):
         expire_period_in_sec = 100
-        model = await link_repository.add_download(
+        model = await rollback_link_repository.add_download(
             self._file_id, expire_period_in_sec
         )
 
@@ -69,9 +69,9 @@ class TestLinkRepository(
         )
 
     @pytest.mark.asyncio
-    async def test_add_upload(self, link_repository):
+    async def test_add_upload(self, rollback_link_repository):
         expire_period_in_sec = 100
-        model = await link_repository.add_upload(
+        model = await rollback_link_repository.add_upload(
             self._file_id, expire_period_in_sec
         )
 
@@ -89,13 +89,13 @@ class TestLinkRepository(
         )
 
     @pytest.mark.asyncio
-    async def test_delete_by_link_id(self, link_repository):
+    async def test_delete_by_link_id(self, rollback_link_repository):
         query = f"SELECT * FROM {settings.links_table} WHERE id = $1;"
 
         link_id = await self._create_default_download_link(
             self._conn, self._file_id
         )
-        await link_repository.delete(link_id)
+        await rollback_link_repository.delete(link_id)
 
         row = await self._conn.fetchrow(query, link_id)
         assert row is None
@@ -103,40 +103,40 @@ class TestLinkRepository(
         link_id = await self._create_default_upload_link(
             self._conn, self._file_id
         )
-        await link_repository.delete(link_id)
+        await rollback_link_repository.delete(link_id)
 
         row = await self._conn.fetchrow(query, link_id)
         assert row is None
 
     @pytest.mark.asyncio
-    async def test_delete_by_link_id_if_not_exist(self, link_repository):
+    async def test_delete_by_link_id_if_not_exist(self, rollback_link_repository):
         query = f"SELECT * FROM {settings.links_table};"
 
         await self._create_default_download_link(self._conn, self._file_id)
         await self._create_default_upload_link(self._conn, self._file_id)
-        await link_repository.delete(uuid4())
+        await rollback_link_repository.delete(uuid4())
 
         rows = await self._conn.fetch(query)
         assert len(rows) == 2
 
     @pytest.mark.asyncio
-    async def test_delete_by_file_id(self, link_repository):
+    async def test_delete_by_file_id(self, rollback_link_repository):
         query = f"SELECT * FROM {settings.links_table} WHERE file_id = $1;"
 
         await self._create_default_download_link(self._conn, self._file_id)
         await self._create_default_upload_link(self._conn, self._file_id)
-        await link_repository.delete_by_file_id(self._file_id)
+        await rollback_link_repository.delete_by_file_id(self._file_id)
 
         row = await self._conn.fetchrow(query, self._file_id)
         assert row is None
 
     @pytest.mark.asyncio
-    async def test_delete_by_file_id_if_not_exist(self, link_repository):
+    async def test_delete_by_file_id_if_not_exist(self, rollback_link_repository):
         query = f"SELECT * FROM {settings.links_table};"
 
         await self._create_default_download_link(self._conn, self._file_id)
         await self._create_default_upload_link(self._conn, self._file_id)
-        await link_repository.delete_by_file_id(uuid4())
+        await rollback_link_repository.delete_by_file_id(uuid4())
 
         rows = await self._conn.fetch(query)
         assert len(rows) == 2

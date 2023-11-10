@@ -17,13 +17,13 @@ async def get(
     uow: AbstractUnitOfWork,
 ) -> FileResponseWithLink:
     async with uow:
-        link_model = await uow.link_repository.add_download(
-            uuid4(), cmd.file_id, settings.storage_time_for_links
-        )
-
         file_model = await uow.file_repository.get(cmd.file_id)
         if file_model.account_id != cmd.account_id:
             raise exceptions.FileNotFound
+
+        link_model = await uow.link_repository.add_download(
+            cmd.file_id, settings.storage_time_for_links
+        )
 
         await uow.commit()
 
@@ -39,7 +39,7 @@ async def add(
     async with uow:
         file_model = await uow.file_repository.add(cmd.account_id)
         link_model = await uow.link_repository.add_upload(
-            uuid4(), file_model.id, settings.storage_time_for_links
+            file_model.id, settings.storage_time_for_links
         )
 
         await uow.commit()
@@ -55,7 +55,7 @@ async def download(
     async with uow:
         link_model = await uow.link_repository.get_download(cmd.link_id)
         file_model = await uow.file_repository.get(link_model.file_id)
-        gen = await uow.file_repository.bytes(file_model.stored_id)
+        gen = await uow.file_repository.bytes(file_model.id)
 
         return file_model.name, file_model.size, gen
 
@@ -68,7 +68,7 @@ async def upload(
         link_model = await uow.link_repository.get_upload(cmd.link_id)
         file_model = await uow.file_repository.get_not_stored(link_model.file_id)
         size = await uow.file_repository.store(
-            file_model.stored_id, cmd.get_coro_with_bytes_func
+            file_model.id, cmd.get_coro_with_bytes_func
         )
 
         model = await uow.file_repository.mark_as_stored(
@@ -84,6 +84,7 @@ async def delete(
     uow: AbstractUnitOfWork,
 ) -> EmptyResponse:
     async with uow:
+        await uow.file_repository.get(cmd.file_id)
         await uow.file_repository.delete(cmd.account_id, cmd.file_id)
         await uow.link_repository.delete_by_file_id(cmd.file_id)
         await uow.commit()

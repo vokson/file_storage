@@ -1,9 +1,5 @@
-from pydantic import UUID4, BaseModel
+from backend.domain.models import AbstractModel
 
 
-class Request(BaseModel):
+class Request(AbstractModel):
     pass
-
-
-# class IdUUIDMixin(BaseModel):
-#     id: UUID4
