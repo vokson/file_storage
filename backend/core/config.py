@@ -42,6 +42,7 @@ class DatabaseSettings(BaseModel):
 
 
 class Settings(BaseSettings):
+    app_name: str
     server: str
     db: DatabaseSettings
     # rabbitmq: RabbitSettings

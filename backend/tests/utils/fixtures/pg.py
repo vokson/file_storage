@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 
 import asyncpg
 import pytest_asyncio

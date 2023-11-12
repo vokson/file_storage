@@ -1,15 +1,13 @@
-import logging
 import json
-import aiohttp
+import logging
 
+import aiohttp
 import pytest_asyncio
 
 from backend.service_layer.handlers.command.dependables import COMMAND_HANDLERS
 from backend.service_layer.handlers.event.dependables import EVENT_HANDLERS
-
-from backend.service_layer.uow import UnitOfWork
 from backend.service_layer.message_bus import MessageBus
-
+from backend.service_layer.uow import UnitOfWork
 
 logger = logging.Logger(__name__)
 

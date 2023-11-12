@@ -19,6 +19,18 @@ class AbstractModel(BaseModel):
         return result
 
 
+def greater_than_zero(cls, v: int) -> int:
+    if v <= 0:
+        raise ValueError("must be greater than zero")
+    return v
+
+
+def greater_than_zero_or_equal(cls, v: int) -> int:
+    if v < 0:
+        raise ValueError("must be greater than zero or equal")
+    return v
+
+
 class IdMixin(BaseModel):
     id: UUID4 = Field(default_factory=uuid4)
 
@@ -38,22 +50,58 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     name: str
     size: int
     account_id: UUID4
-    has_stored: bool = Field(False)
-    stored: datetime | None = Field(None)
-    has_deleted: bool = Field(False)
-    deleted: datetime | None = Field(None)
-    has_erased: bool = Field(False)
-    erased: datetime | None = Field(None)
+    has_stored: bool = False
+    stored: datetime | None = None
+    has_deleted: bool = False
+    deleted: datetime | None = None
+    has_erased: bool = False
+    erased: datetime | None = None
 
-    @field_validator("size")
-    @classmethod
-    def greater_than_zero(cls, v: int) -> int:
-        if v < 0:
-            raise ValueError("must be greater than zero or equal")
-        return v
+    # @field_validator("size")
+    # @classmethod
+    # def greater_than_zero(cls, v: int) -> int:
+    #     if v < 0:
+    #         raise ValueError("must be greater than zero or equal")
+    #     return v
+
+    size_greater_than_zero_or_equal = field_validator("size")(
+        greater_than_zero_or_equal
+    )
+
+    @model_serializer(mode="wrap")
+    def to_broker(self) -> dict[str, Any]:
+        return {"account_id": self.account_id}
 
 
 class Link(AbstractModel, IdMixin, CreatedMixin):
     file_id: UUID4
     type: str = Field(pattern=r"^D|U$")
     expired: datetime
+
+
+class BrokerMessage(AbstractModel, IdMixin, CreatedMixin):
+    app: str
+    key: str
+    body: dict
+    has_executed: bool = False
+    updated: datetime = Field(default_factory=tz_now)
+
+
+class IncomingBrokerMessage(BrokerMessage):
+    direction: str = 'I'
+
+
+class OutgoingBrokerMessage(BrokerMessage):
+    direction: str = 'O'
+    has_execution_stopped: bool = False
+    count_of_retries: int = 0
+    next_retry_at: datetime
+    seconds_to_next_retry: int = 1
+
+    count_of_retries_greater_than_zero_or_equal = field_validator(
+        "count_of_retries"
+    )(greater_than_zero_or_equal)
+
+    seconds_to_next_retry_greater_than_zero = field_validator(
+        "seconds_to_next_retry"
+    )(greater_than_zero)

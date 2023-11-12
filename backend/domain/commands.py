@@ -5,9 +5,14 @@ from uuid import UUID
 from pydantic import UUID4
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
+from backend.domain.messages import Message
+
 
 class Command:
     pass
+
+
+# ***** FILE *****
 
 
 @pydantic_dataclass
@@ -49,3 +54,39 @@ class DeleteFile(Command):
 @pydantic_dataclass
 class EraseFile(GetFile):
     file_id: UUID4
+
+
+# ***** EVENT LOOP *****
+
+
+@pydantic_dataclass
+class ConsumeMessageFromBroker(Command):
+    app_id: str
+    message_id: str
+    key: str
+    body: str
+
+
+class GetMessagesToBeSendToBroker(Command):
+    pass
+
+
+@pydantic_dataclass
+class SendMessageToBroker(Command):
+    message: Message
+    delay: int = 0
+
+
+@pydantic_dataclass
+class MarkOutgoingBrokerMessageAsExecuted(Command):
+    ids: list[UUID]
+
+
+@pydantic_dataclass
+class MarkIncomingBrokerMessageAsExecuted(Command):
+    id: UUID
+
+
+@pydantic_dataclass
+class ScheduleNextRetryForBrokerMessage(Command):
+    ids: list[UUID]

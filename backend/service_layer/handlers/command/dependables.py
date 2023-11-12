@@ -1,5 +1,5 @@
 from backend.domain import commands
-from backend.service_layer.handlers.command import accounts, files
+from backend.service_layer.handlers.command import accounts, files, broker
 
 COMMAND_HANDLERS = {
     # ACCOUNT
@@ -14,4 +14,12 @@ COMMAND_HANDLERS = {
 
     commands.DeleteFile: files.delete,
     commands.EraseFile: files.erase,
+
+    # EVENT LOOP
+    # commands.ConsumeMessageFromBroker: broker.consume_message_from_broker,
+    # commands.GetMessagesToBeSendToBroker: broker.get_messages_to_be_send_to_broker,
+    commands.SendMessageToBroker: broker.send_message_to_broker,
+    # commands.MarkIncomingBrokerMessageAsExecuted: broker.mark_incoming_broker_message_as_executed,
+    # commands.MarkOutgoingBrokerMessageAsExecuted: broker.mark_outgoing_broker_message_as_executed,
+    # commands.ScheduleNextRetryForBrokerMessage: broker.schedule_next_retry_for_broker_message,
 }
