@@ -9,8 +9,6 @@ from backend.domain import models
 
 @pydantic_dataclass
 class Message:
-    key: str
-
     @property
     @abstractmethod
     def to_broker(self) -> dict[str, Any]:
@@ -28,8 +26,8 @@ class FileMessage(Message):
 
 @pydantic_dataclass
 class FileStored(FileMessage):
-    key: str = Field("FILE.STORED")
+    key: str = "FILE.STORED"
 
 @pydantic_dataclass
 class FileDeleted(FileMessage):
-    key: str = Field("FILE.DELETED")
+    key: str = "FILE.DELETED"

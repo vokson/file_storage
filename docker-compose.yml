@@ -51,7 +51,28 @@ services:
     volumes:
       - file_storage:/storage
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
     command: ["python", "/backend/server.py"]
+
+  publisher:
+    build:
+        context: ./backend
+        dockerfile: ./Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    command: ["python", "/backend/publisher.py"]
 
   # http_2:
   #   build:

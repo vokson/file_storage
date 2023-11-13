@@ -30,7 +30,7 @@ async def get_db_conn(**dsl):
 
     await conn.set_type_codec(
         "jsonb",
-        encoder=lambda x: x.json(),
+        encoder=lambda x: json.dumps(x, default=str),
         decoder=json.loads,
         schema="pg_catalog",
     )

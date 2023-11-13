@@ -6,7 +6,7 @@ from backend.api.responses.abstract import EmptyResponse
 from backend.api.responses.files import FileResponse, FileResponseWithLink
 from backend.core import exceptions
 from backend.core.config import settings
-from backend.domain import commands
+from backend.domain import commands, events
 from backend.service_layer.uow import AbstractUnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,9 @@ async def upload(
         )
         await uow.link_repository.delete(cmd.link_id)
         await uow.commit()
-        return FileResponse(**dict(model))
+
+    uow.push_message(events.FileStored(model))
+    return FileResponse(**dict(model))
 
 
 async def delete(
@@ -85,10 +87,12 @@ async def delete(
 ) -> EmptyResponse:
     async with uow:
         await uow.file_repository.get(cmd.file_id)
-        await uow.file_repository.delete(cmd.account_id, cmd.file_id)
+        model = await uow.file_repository.delete(cmd.account_id, cmd.file_id)
         await uow.link_repository.delete_by_file_id(cmd.file_id)
         await uow.commit()
-        return EmptyResponse()
+
+    uow.push_message(events.FileDeleted(model))
+    return EmptyResponse()
 
 
 async def erase(

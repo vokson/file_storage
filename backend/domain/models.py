@@ -57,20 +57,14 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     has_erased: bool = False
     erased: datetime | None = None
 
-    # @field_validator("size")
-    # @classmethod
-    # def greater_than_zero(cls, v: int) -> int:
-    #     if v < 0:
-    #         raise ValueError("must be greater than zero or equal")
-    #     return v
-
     size_greater_than_zero_or_equal = field_validator("size")(
         greater_than_zero_or_equal
     )
 
-    @model_serializer(mode="wrap")
     def to_broker(self) -> dict[str, Any]:
-        return {"account_id": self.account_id}
+        return self.model_dump(
+            include={"id", "account_id", "name", "size", "stored", "deleted"}
+        )
 
 
 class Link(AbstractModel, IdMixin, CreatedMixin):
@@ -83,16 +77,9 @@ class BrokerMessage(AbstractModel, IdMixin, CreatedMixin):
     app: str
     key: str
     body: dict
+    direction: str = Field(pattern=r"^I|O$")
     has_executed: bool = False
     updated: datetime = Field(default_factory=tz_now)
-
-
-class IncomingBrokerMessage(BrokerMessage):
-    direction: str = 'I'
-
-
-class OutgoingBrokerMessage(BrokerMessage):
-    direction: str = 'O'
     has_execution_stopped: bool = False
     count_of_retries: int = 0
     next_retry_at: datetime

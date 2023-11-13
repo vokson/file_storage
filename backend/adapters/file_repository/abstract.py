@@ -47,7 +47,7 @@ class AbstractFileRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, account_id: UUID, file_id: UUID):
+    async def delete(self, account_id: UUID, file_id: UUID) -> File:
         pass
 
     @abstractmethod

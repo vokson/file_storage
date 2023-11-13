@@ -19,15 +19,13 @@ def transform_exception(err: Exception) -> web.Response:
     return web.Response(text=code, status=status)
 
 
-async def transform_json_response(r: Response) -> web.Response:
+async def transform_json_response(r: Response, status: int = 200) -> web.Response:
     response = web.Response(
         headers={
             "Content-Type": "application/json; charset=utf-8",
         },
-        # body=json.dumps(
-        #     {"success": True, "data": r.model_dump()}, default=lambda x: str(x)
-        # ),
         body=r.model_dump_json(),
+        status=status
     )
     return response
 

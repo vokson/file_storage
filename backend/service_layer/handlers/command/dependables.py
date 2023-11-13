@@ -15,11 +15,11 @@ COMMAND_HANDLERS = {
     commands.DeleteFile: files.delete,
     commands.EraseFile: files.erase,
 
-    # EVENT LOOP
-    # commands.ConsumeMessageFromBroker: broker.consume_message_from_broker,
-    # commands.GetMessagesToBeSendToBroker: broker.get_messages_to_be_send_to_broker,
-    commands.SendMessageToBroker: broker.send_message_to_broker,
-    # commands.MarkIncomingBrokerMessageAsExecuted: broker.mark_incoming_broker_message_as_executed,
-    # commands.MarkOutgoingBrokerMessageAsExecuted: broker.mark_outgoing_broker_message_as_executed,
-    # commands.ScheduleNextRetryForBrokerMessage: broker.schedule_next_retry_for_broker_message,
+    # BROKER
+    commands.GetMessagesToBeSendToBroker: broker.get_not_executed_outgoing,
+    commands.AddIncomingBrokerMessage: broker.add_incoming,
+    commands.AddOutgoingBrokerMessage: broker.add_outgoing,
+    commands.MarkBrokerMessageAsExecuted: broker.mark_as_executed,
+    commands.ScheduleNextRetryForBrokerMessage: broker.schedule_next_retry,
+    commands.PublishMessageToBroker: broker.publish,
 }

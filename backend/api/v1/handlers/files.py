@@ -90,4 +90,4 @@ async def delete(
     bus = bus or await get_bus()
 
     cmd = commands.DeleteFile(account_id=_account_id, file_id=path_parameters["file_id"])
-    return await transform_json_response(await bus.handle(cmd))
+    return await transform_json_response(await bus.handle(cmd), status=204)

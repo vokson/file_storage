@@ -33,6 +33,7 @@ class MessageBus:
         results = []
 
         while queue:
+            logger.debug(f'QUEUE: {queue}')
             message = queue.pop(0)
 
             if isinstance(message, events.Event):

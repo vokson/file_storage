@@ -92,11 +92,10 @@ class DatabaseFileRepository(AbstractFileRepository):
     async def add(self, account_id: UUID) -> File:
         file_id = uuid4()
         stored_id = uuid4()
-        log = (
+        logger.debug(
             f"Add empty file with account_id {account_id}, "
             f"id {file_id}, stored_id {stored_id}"
         )
-        logger.debug(log)
         await self._conn.execute(
             self.ADD_QUERY, account_id, file_id, stored_id, "", 0, tz_now()
         )
@@ -123,9 +122,10 @@ class DatabaseFileRepository(AbstractFileRepository):
         await self._conn.execute(self.STORE_QUERY, file_id, name, size, tz_now())
         return await self.get_not_stored(file_id)
 
-    async def delete(self, account_id: UUID, file_id: UUID):
+    async def delete(self, account_id: UUID, file_id: UUID) -> File:
         logger.info(f"Delete file with id {file_id} by account {account_id}")
         await self._conn.execute(self.DELETE_QUERY, account_id, file_id, tz_now())
+        return await self.get_deleted(file_id)
 
     async def erase(self, file_id: UUID):
         logger.debug(f"Erase file with id {file_id}")

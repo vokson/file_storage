@@ -60,33 +60,37 @@ class EraseFile(GetFile):
 
 
 @pydantic_dataclass
-class ConsumeMessageFromBroker(Command):
-    app_id: str
-    message_id: str
-    key: str
-    body: str
-
-
 class GetMessagesToBeSendToBroker(Command):
-    pass
+    chunk_size: int
 
 
 @pydantic_dataclass
-class SendMessageToBroker(Command):
+class AddOutgoingBrokerMessage(Command):
     message: Message
     delay: int = 0
 
 
 @pydantic_dataclass
-class MarkOutgoingBrokerMessageAsExecuted(Command):
-    ids: list[UUID]
+class AddIncomingBrokerMessage(Command):
+    id: UUID
+    app: str
+    key: str
+    body: dict
 
 
 @pydantic_dataclass
-class MarkIncomingBrokerMessageAsExecuted(Command):
-    id: UUID
+class MarkBrokerMessageAsExecuted(Command):
+    ids: list[UUID]
 
 
 @pydantic_dataclass
 class ScheduleNextRetryForBrokerMessage(Command):
     ids: list[UUID]
+
+
+@pydantic_dataclass
+class PublishMessageToBroker(Command):
+    id: UUID
+    app: str
+    key: str
+    body: dict
