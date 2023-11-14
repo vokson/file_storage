@@ -1,5 +1,6 @@
 import logging
 
+from backend.core.config import settings
 from backend.domain import commands, models
 from backend.service_layer.uow import AbstractUnitOfWork
 
@@ -12,6 +13,16 @@ async def get_not_executed_outgoing(
 ) -> list[models.BrokerMessage]:
     async with uow:
         return await uow.broker_message_repository.get_not_executed_outgoing(
+            cmd.chunk_size
+        )
+
+
+async def get_not_executed_incoming(
+    cmd: commands.GetMessagesReceivedFromBroker,
+    uow: AbstractUnitOfWork,
+) -> list[models.BrokerMessage]:
+    async with uow:
+        return await uow.broker_message_repository.get_not_executed_incoming(
             cmd.chunk_size
         )
 
@@ -60,4 +71,43 @@ async def publish(
     cmd: commands.PublishMessageToBroker,
     uow: AbstractUnitOfWork,
 ) -> bool:
-    return await uow.broker_publisher.push_message(cmd.app, cmd.key, cmd.body, cmd.id)
+    return await uow.broker_publisher.push_message(
+        cmd.message.app, cmd.message.key, cmd.message.body, cmd.message.id
+    )
+
+async def execute(
+    cmd: commands.ExecuteBrokerMessage,
+    uow: AbstractUnitOfWork,
+):
+    handlers = {
+        settings.app_name: {
+            'FILE.DELETED': file_deleted_handler,
+            'FILE.STORED': file_stored_handler,
+        }
+    }
+
+    if cmd.message.app not in handlers:
+        return
+
+    handler = handlers[cmd.message.app].get(cmd.message.key)
+
+    if not handler:
+        return
+
+    await handler(uow, cmd.message.body)
+
+async def file_deleted_handler(
+    uow: AbstractUnitOfWork,
+    data: dict
+):
+    logger.debug('File deleted broker message handler')
+    uow.push_message(commands.DeleteFile(data['account_id'], data['id']))
+    print('***** FILE DELETED *****')
+
+async def file_stored_handler(
+    uow: AbstractUnitOfWork,
+    data: dict
+):
+    logger.debug('File stored broker message handler')
+    uow.push_message(commands.CloneFile(data['account_id'], data['id']))
+    print('***** FILE STORED *****')

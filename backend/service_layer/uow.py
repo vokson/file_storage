@@ -1,26 +1,25 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Awaitable, Callable
 
-from backend.adapters.account_repository.abstract import (
-    AbstractAccountRepository,
-)
+from backend.adapters.account_repository.abstract import \
+    AbstractAccountRepository
 from backend.adapters.account_repository.db import get_db_account_repository
-
-from backend.adapters.db import get_db_conn, release_db_conn
 from backend.adapters.broker import init_publisher
+from backend.adapters.broker_message_repository.abstract import \
+    AbstractBrokerMessageRepository
+from backend.adapters.broker_message_repository.db import \
+    get_db_broker_message_repository
+from backend.adapters.db import get_db_conn, release_db_conn
 from backend.adapters.file_repository.abstract import AbstractFileRepository
 from backend.adapters.file_repository.db import get_db_file_repository
 from backend.adapters.file_storage.abstract import AbstractFileStorage
 from backend.adapters.file_storage.local import get_local_file_storage
 from backend.adapters.link_repository.abstract import AbstractLinkRepository
 from backend.adapters.link_repository.db import get_db_link_repository
-from backend.adapters.broker_message_repository.abstract import (
-    AbstractBrokerMessageRepository,
-)
-from backend.adapters.broker_message_repository.db import (
-    get_db_broker_message_repository,
-)
-from backend.core.config import db_dsl, broker_args
+from backend.core.config import broker_url, db_dsl, settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_db_connection():
@@ -32,7 +31,7 @@ def release_db_connection(conn):
 
 
 def get_broker_publisher():
-    return init_publisher(*broker_args)
+    return init_publisher(broker_url, settings.broker.exchange)
 
 
 class AbstractUnitOfWork(ABC):

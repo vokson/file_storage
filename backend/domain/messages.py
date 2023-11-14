@@ -1,8 +1,8 @@
+from abc import abstractmethod
 from typing import Any
 
-from pydantic import model_serializer, Field
+from pydantic import Field, model_serializer
 from pydantic.dataclasses import dataclass as pydantic_dataclass
-from abc import abstractmethod
 
 from backend.domain import models
 
@@ -21,7 +21,7 @@ class FileMessage(Message):
 
     @property
     def to_broker(self) -> dict[str, Any]:
-        return dict(self.file.to_broker())
+        return self.file.to_broker()
 
 
 @pydantic_dataclass

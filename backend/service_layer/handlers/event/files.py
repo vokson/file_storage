@@ -11,7 +11,7 @@ async def deleted(
     uow: AbstractUnitOfWork,
 ):
     message = messages.FileDeleted(evt.file)
-    cmd = commands.SendMessageToBroker(message)
+    cmd = commands.AddOutgoingBrokerMessage(message)
     uow.push_message(cmd)
 
 
@@ -20,5 +20,5 @@ async def stored(
     uow: AbstractUnitOfWork,
 ):
     message = messages.FileStored(evt.file)
-    cmd = commands.SendMessageToBroker(message)
+    cmd = commands.AddOutgoingBrokerMessage(message)
     uow.push_message(cmd)

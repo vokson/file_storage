@@ -1,9 +1,10 @@
 import asyncio
 import hashlib
-from uuid import UUID
 import json
 import logging
 from abc import ABC, abstractmethod
+from typing import Awaitable, Callable
+from uuid import UUID
 
 import aioamqp
 from aioamqp.protocol import CONNECTING, OPEN
@@ -209,7 +210,7 @@ class RabbitConsumer(AbstractRabbitExchangeConnector):
         ampq_url,
         exchange,
         queue,
-        on_consume_message_callback,
+        on_consume_message_callback: Callable[[str, str, str, dict], Awaitable[bool]],
         routing_key="#",
         exchange_type="topic",
         exchange_durability=True,
@@ -332,8 +333,8 @@ class RabbitConsumer(AbstractRabbitExchangeConnector):
         try:
             # Обрабатываем полученное сообщение
             data = (
-                properties.app_id,
                 properties.message_id,
+                properties.app_id,
                 envelope.routing_key,
                 json.loads(body),
             )
@@ -379,6 +380,7 @@ class RabbitConsumer(AbstractRabbitExchangeConnector):
 
 
 publisher: RabbitPublisher | None = None
+consumer: RabbitConsumer | None = None
 
 
 async def init_publisher(*args, **kwargs):
@@ -392,3 +394,17 @@ async def init_publisher(*args, **kwargs):
         logger.info("Publisher has been initialized.")
 
     return publisher
+
+
+
+async def init_consumer(*args, **kwargs):
+    global consumer
+
+    if not consumer:
+        logger.info("Initialization of consumer ..")
+        consumer = RabbitConsumer(*args, **kwargs)
+        loop = asyncio.get_event_loop()
+        loop.create_task(consumer.run())
+        logger.info("Consumer has been initialized.")
+
+    return consumer

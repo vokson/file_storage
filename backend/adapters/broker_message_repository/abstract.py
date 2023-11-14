@@ -22,6 +22,18 @@ class AbstractBrokerMessageRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_not_executed_outgoing(
+        self, chunk_size: int
+    ) -> list[BrokerMessage]:
+        pass
+
+    @abstractmethod
+    async def get_not_executed_incoming(
+        self, chunk_size: int
+    ) -> list[BrokerMessage]:
+        pass
+
+    @abstractmethod
     async def add_outgoing(
         self, key: str, body: dict, delay_in_seconds: int = 0
     ) -> BrokerMessage:
@@ -29,7 +41,7 @@ class AbstractBrokerMessageRepository(ABC):
 
     @abstractmethod
     async def add_incoming(
-        self, app:str, key: str, body: dict, delay_in_seconds: int = 0
+        self, app: str, key: str, body: dict, delay_in_seconds: int = 0
     ) -> BrokerMessage:
         pass
 

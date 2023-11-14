@@ -58,7 +58,7 @@ services:
         max-file: "10"
     command: ["python", "/backend/server.py"]
 
-  publisher:
+  broker:
     build:
         context: ./backend
         dockerfile: ./Dockerfile
@@ -72,7 +72,7 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
-    command: ["python", "/backend/publisher.py"]
+    command: ["python", "/backend/broker.py"]
 
   # http_2:
   #   build:

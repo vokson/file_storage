@@ -6,6 +6,7 @@ from pydantic import UUID4
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 from backend.domain.messages import Message
+from backend.domain.models import BrokerMessage
 
 
 class Command:
@@ -52,6 +53,12 @@ class DeleteFile(Command):
 
 
 @pydantic_dataclass
+class CloneFile(Command):
+    account_id: UUID
+    file_id: UUID
+
+
+@pydantic_dataclass
 class EraseFile(GetFile):
     file_id: UUID4
 
@@ -60,8 +67,16 @@ class EraseFile(GetFile):
 
 
 @pydantic_dataclass
-class GetMessagesToBeSendToBroker(Command):
+class GetBrokerMessages(Command):
     chunk_size: int
+
+
+class GetMessagesToBeSendToBroker(GetBrokerMessages):
+    pass
+
+
+class GetMessagesReceivedFromBroker(GetBrokerMessages):
+    pass
 
 
 @pydantic_dataclass
@@ -90,7 +105,17 @@ class ScheduleNextRetryForBrokerMessage(Command):
 
 @pydantic_dataclass
 class PublishMessageToBroker(Command):
-    id: UUID
+    message: BrokerMessage
+
+
+@pydantic_dataclass
+class ConsumeMessageFromBroker(Command):
+    id: str
     app: str
     key: str
-    body: dict
+    body: str
+
+
+@pydantic_dataclass
+class ExecuteBrokerMessage(Command):
+    message: BrokerMessage

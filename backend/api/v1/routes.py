@@ -15,6 +15,12 @@ ROUTES = [
     web.post("/upload/{link_id}/", files.upload),
 ]
 
+def make_files_url(host: str | None = None) -> str:
+    return f"{host if host else settings.server}/files/"
+
+def make_file_url(file_id: UUID, host: str | None = None) -> str:
+    return f"{make_files_url(host=host)}/{file_id}/"
+
 def _make_link_url(link_id: UUID, direction: str) -> str:
     return f"{settings.server}/{direction}/{link_id}/"
 

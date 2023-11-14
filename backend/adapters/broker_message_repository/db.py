@@ -15,6 +15,8 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
         f"SELECT * FROM {settings.broker_messages_table} WHERE id = $1;"
     )
 
+    GET_DIRECTIONAL_BY_ID_QUERY = f"SELECT * FROM {settings.broker_messages_table} WHERE id = $1 AND direction = $2;"
+
     GET_NOT_EXECUTED_MESSAGES_QUERY = f"""
                         SELECT * FROM {settings.broker_messages_table}
                         WHERE
@@ -51,13 +53,12 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
                             WHERE id = ANY($1::uuid[]);
                         """
 
-# TODO Сложение int и timestamp
     SCHEDULE_NEXT_RETRY_QUERY = f"""
                             UPDATE {settings.broker_messages_table}
                             SET
                                 updated = $2,
                                 count_of_retries = count_of_retries + 1,
-                                next_retry_at = $2 + seconds_to_next_retry,
+                                next_retry_at = $2::timestamptz + INTERVAL '1 second' * seconds_to_next_retry,
                                 seconds_to_next_retry = seconds_to_next_retry * 2
                             WHERE id = ANY($1::uuid[]);
                         """
@@ -68,9 +69,17 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
                             WHERE id = ANY($1::uuid[]) AND count_of_retries >= $2;
                         """
 
-    async def get_by_id(self, id: UUID) -> BrokerMessage:
+    async def get_by_id(
+        self, id: UUID, direction: str | None = None
+    ) -> BrokerMessage:
         logger.debug(f"Get broker message with id {id}.")
-        row = await self._conn.fetchrow(self.GET_BY_ID_QUERY, id)
+        row = (
+            await self._conn.fetchrow(self.GET_BY_ID_QUERY, id)
+            if direction is None
+            else await self._conn.fetchrow(
+                self.GET_DIRECTIONAL_BY_ID_QUERY, id, direction
+            )
+        )
         if not row:
             raise exceptions.FileNotFound
 
@@ -92,6 +101,11 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
         self, chunk_size: int
     ) -> list[BrokerMessage]:
         return await self._get_not_executed(self.OUT_DIRECTION, chunk_size)
+
+    async def get_not_executed_incoming(
+        self, chunk_size: int
+    ) -> list[BrokerMessage]:
+        return await self._get_not_executed(self.IN_DIRECTION, chunk_size)
 
     async def _add(
         self,
@@ -120,7 +134,7 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
             tz_now(),
             tz_now(),
             False,
-            settings.broker.publish_retry_count,
+            1,
             tz_now(delay_in_seconds),
             1,
         )
@@ -133,10 +147,11 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
         )
 
     async def add_incoming(self, id: UUID, app: str, key: str, body: dict):
-        if self.get_by_id(id):
-            return
+        try:
+            await self.get_by_id(id, self.IN_DIRECTION)
+        except exceptions.FileNotFound:
+            await self._add(self.IN_DIRECTION, app, key, body, 0)
 
-        await self._add(self.IN_DIRECTION, app, key, body, 0)
 
     async def mark_as_executed(self, ids: list[UUID]):
         logger.debug(f"Mark broker messages as executed. IDs: {ids}")
@@ -149,12 +164,11 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
             ids,
             tz_now(),
         )
-        # await self._conn.execute(
-        #     self.MARK_AS_FAILED_QUERY,
-        #     ids,
-        #     settings.broker.publish_retry_count,
-        # )
-
+        await self._conn.execute(
+            self.MARK_AS_FAILED_QUERY,
+            ids,
+            settings.broker.publish_retry_count
+        )
 
 async def get_db_broker_message_repository(
     conn,

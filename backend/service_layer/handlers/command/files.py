@@ -1,9 +1,14 @@
+import asyncio
 import logging
+from contextlib import suppress
 from typing import AsyncGenerator, Awaitable
-from uuid import uuid4
+from uuid import UUID
+
+import aiohttp
 
 from backend.api.responses.abstract import EmptyResponse
-from backend.api.responses.files import FileResponse, FileResponseWithLink
+from backend.api.responses.files import (FileResponse, FileResponseWithLink,
+                                         NotStoredFileResponse)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain import commands, events
@@ -35,7 +40,7 @@ async def get(
 async def add(
     cmd: commands.AddFile,
     uow: AbstractUnitOfWork,
-) -> FileResponseWithLink:
+) -> NotStoredFileResponse:
     async with uow:
         file_model = await uow.file_repository.add(cmd.account_id)
         link_model = await uow.link_repository.add_upload(
@@ -43,7 +48,7 @@ async def add(
         )
 
         await uow.commit()
-    return FileResponseWithLink(
+    return NotStoredFileResponse(
         **dict(file_model), link=cmd.make_upload_url(link_model.id)
     )
 
@@ -66,7 +71,9 @@ async def upload(
 ) -> FileResponse:
     async with uow:
         link_model = await uow.link_repository.get_upload(cmd.link_id)
-        file_model = await uow.file_repository.get_not_stored(link_model.file_id)
+        file_model = await uow.file_repository.get_not_stored(
+            link_model.file_id
+        )
         size = await uow.file_repository.store(
             file_model.id, cmd.get_coro_with_bytes_func
         )
@@ -103,3 +110,73 @@ async def erase(
         await uow.file_repository.erase(cmd.file_id)
         await uow.commit()
         return EmptyResponse()
+
+
+async def clone(
+    cmd: commands.CloneFile,
+    uow: AbstractUnitOfWork,
+):
+    from backend.api.routes import make_file_url
+
+    async with uow:
+        #  Проверяем существует ли данный файл
+        try:
+            await uow.file_repository.get(cmd.file_id)
+            return
+        except exceptions.FileNotFound:
+            pass
+
+        #  Если нет, определяем нужен ли данный файл в данном хранилище
+        try:
+            account = await uow.account_repository.get_by_id(cmd.account_id)
+        except exceptions.AccountNotFound:
+            return
+
+        if not account.is_active:
+            return
+
+    #  Если нужен, обращаемся ко всем хранилищам,
+    #  чтобы получить ссылку для скачивания
+
+    headers = {"Authorization": str(account.auth_token)}
+    hosts = ['10.95.27.163:8080']
+
+    session = aiohttp.ClientSession()
+    download_link = None
+
+    tasks = set()
+    for host in hosts:
+        async def get_download_link(file_id: UUID, host: str) -> str | None:
+            response = await session.get(make_file_url(file_id, host=host), headers=headers)
+            if response.status == 200:
+                json_data = await response.json()
+
+                nonlocal download_link
+                download_link = json_data['link']
+
+                raise exceptions.Ok
+            
+
+        tasks.add(get_download_link(cmd.file_id, host))
+
+    # done, pending = asyncio.wait(tasks, timeout=2, return_when=asyncio.FIRST_EXCEPTION)
+
+
+    loop = asyncio.get_event_loop()
+    done, pending = loop.run_until_complete(
+        asyncio.wait(tasks, timeout=2.0, return_when=asyncio.FIRST_EXCEPTION)
+    )
+    # for coro in done_first:
+    #     try:
+    #         print(coro.result())
+    #     except TimeoutError:
+    #         print("cleanup after error before exit")
+
+    for p in pending:
+        p.cancel()
+        with suppress(asyncio.CancelledError):
+            loop.run_until_complete(p)
+
+    print('LINK: ', download_link)
+
+    await session.close()

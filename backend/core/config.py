@@ -32,7 +32,6 @@ class BrokerSettings(BaseSettings):
     publish_retry_count: int
 
 
-
 class Settings(BaseSettings):
     app_name: str
     server: str
@@ -55,6 +54,7 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
     )
 
+
 settings = Settings()
 
 
@@ -76,5 +76,3 @@ broker_url = (
     f"{settings.broker.password}@{settings.broker.host}:"
     f"{settings.broker.port}/{settings.broker.vhost}"
 )
-
-broker_args = (broker_url, settings.broker.exchange)

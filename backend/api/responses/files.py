@@ -1,21 +1,21 @@
 from datetime import datetime
 
-from pydantic import UUID4, Field
-
-from backend.core.config import settings
+from pydantic import UUID4
 
 from .abstract import Response
+
+
+class NotStoredFileResponse(Response):
+    id: UUID4
+    link: str
+    created: datetime
 
 
 class FileResponse(Response):
     id: UUID4
     name: str
     size: int
-    created: datetime
-    stored: datetime | None
-    deleted: datetime | None
-    erased: datetime | None
-
+    stored: datetime
 
 class FileResponseWithLink(FileResponse):
     link: str

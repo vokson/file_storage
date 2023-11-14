@@ -7,6 +7,10 @@ from pydantic import UUID4, BaseModel, Field, field_validator, model_serializer
 from backend.core.config import tz_now
 
 
+def convert_datetime_to_iso_8601_with_z_suffix(dt: datetime) -> str:
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 class AbstractModel(BaseModel):
     #  Не использовал json_encoders из-за Deprecated
     @model_serializer
@@ -14,7 +18,11 @@ class AbstractModel(BaseModel):
         result = {}
         for key in [x for x in self.__dict__.keys() if not x.startswith("__")]:
             value = getattr(self, key)
-            result[key] = str(value) if type(value) is datetime else value
+            result[key] = (
+                value.astimezone().isoformat()
+                if type(value) is datetime
+                else value
+            )
 
         return result
 
@@ -62,9 +70,36 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     )
 
     def to_broker(self) -> dict[str, Any]:
-        return self.model_dump(
-            include={"id", "account_id", "name", "size", "stored", "deleted"}
-        )
+        return {
+            "id": self.id,
+            "account_id": self.account_id,
+            "name": self.name,
+            "size": self.size,
+            "stored": self.stored,
+            "deleted": self.deleted,
+        }
+
+        # print(self.model_dump(
+        #     include={
+        #         "id": True,
+        #         "account_id": True,
+        #         "name": True,
+        #         "size": True,
+        #         "stored": True,
+        #         "deleted": True,
+        #     }
+        # ))
+
+        # return self.model_dump(
+        #     include={
+        #         "id": True,
+        #         "account_id": True,
+        #         "name": True,
+        #         "size": True,
+        #         "stored": True,
+        #         "deleted": True,
+        #     }
+        # )
 
 
 class Link(AbstractModel, IdMixin, CreatedMixin):
