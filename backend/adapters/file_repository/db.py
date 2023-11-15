@@ -108,6 +108,8 @@ class DatabaseFileRepository(AbstractFileRepository):
         model = await self.get(file_id)
         return self._storage.get(model.stored_id)
 
+    # TODO get_bytes - Awaitable or AsyncStreamIterator (StopAsyncIteration)
+
     async def store(
         self,
         file_id: UUID,

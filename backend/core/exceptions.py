@@ -27,6 +27,10 @@ class RequestBodyNotJson(ApiException):
     pass
 
 
+class NoConnectionToServer(ApiException):
+    pass
+
+
 ### ACCOUNT
 
 

@@ -10,7 +10,7 @@ from backend.adapters.broker_message_repository.abstract import \
     AbstractBrokerMessageRepository
 from backend.adapters.broker_message_repository.db import \
     get_db_broker_message_repository
-from backend.adapters.db import get_db_conn, release_db_conn
+from backend.adapters.db import get_db_conn, release_db_conn, init_db, close_db
 from backend.adapters.file_repository.abstract import AbstractFileRepository
 from backend.adapters.file_repository.db import get_db_file_repository
 from backend.adapters.file_storage.abstract import AbstractFileStorage
@@ -21,6 +21,11 @@ from backend.core.config import broker_url, db_dsl, settings
 
 logger = logging.getLogger(__name__)
 
+async def init_db_pool():
+    await init_db(**db_dsl)
+
+async def close_db_pool():
+    await close_db()
 
 def get_db_connection():
     return get_db_conn(**db_dsl)

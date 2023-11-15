@@ -26,21 +26,6 @@ async def error_middleware(request, handler):
         return transform_exception(e)
 
 
-# @web.middleware
-# async def verify_auth_token(request, handler):
-#     try:
-#         auth_token = UUID(request.headers.getone("Authorization", ""))
-#     except ValueError:
-#         raise exceptions.AuthTokenFail
-
-#     bus = await get_bus()
-#     cmd = commands.GetAccountIdByAuthToken(auth_token=auth_token)
-#     account_id = await bus.handle(cmd)
-#     if account_id is None:
-#         raise exceptions.AuthTokenFail
-
-#     return await handler(request, _account_id=account_id)
-
 def verify_auth_token():
     def wrapper(f: Callable) -> Callable:
         @wraps(f)

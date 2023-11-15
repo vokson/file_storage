@@ -7,8 +7,11 @@ from uuid import UUID
 import aiohttp
 
 from backend.api.responses.abstract import EmptyResponse
-from backend.api.responses.files import (FileResponse, FileResponseWithLink,
-                                         NotStoredFileResponse)
+from backend.api.responses.files import (
+    FileResponse,
+    FileResponseWithLink,
+    NotStoredFileResponse,
+)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain import commands, events
@@ -31,6 +34,12 @@ async def get(
         )
 
         await uow.commit()
+
+    import random
+
+    x = random.randint(0, 5)
+    print(f"SLEEP {x}")
+    await asyncio.sleep(x)
 
     return FileResponseWithLink(
         **dict(file_model), link=cmd.make_download_url(link_model.id)
@@ -116,15 +125,16 @@ async def clone(
     cmd: commands.CloneFile,
     uow: AbstractUnitOfWork,
 ):
+    print("***** CLONE FILE *****")
     from backend.api.routes import make_file_url
 
     async with uow:
         #  Проверяем существует ли данный файл
-        try:
-            await uow.file_repository.get(cmd.file_id)
-            return
-        except exceptions.FileNotFound:
-            pass
+        # try:
+        #     await uow.file_repository.get(cmd.file_id)
+        #     return
+        # except exceptions.FileNotFound:
+        #     pass
 
         #  Если нет, определяем нужен ли данный файл в данном хранилище
         try:
@@ -139,44 +149,74 @@ async def clone(
     #  чтобы получить ссылку для скачивания
 
     headers = {"Authorization": str(account.auth_token)}
-    hosts = ['10.95.27.163:8080']
+    hosts = [
+        "http://10.95.27.163:8080",
+        "http://10.95.27.163:8080",
+        "http://10.95.27.163:8080",
+        "http://10.95.27.163:8080",
+    ]
 
     session = aiohttp.ClientSession()
     download_link = None
 
     tasks = set()
     for host in hosts:
+
         async def get_download_link(file_id: UUID, host: str) -> str | None:
-            response = await session.get(make_file_url(file_id, host=host), headers=headers)
-            if response.status == 200:
-                json_data = await response.json()
+            try:
+                response = await session.get(
+                    make_file_url(file_id, host=host), headers=headers
+                )
+                if response.status == 200:
+                    json_data = await response.json()
 
-                nonlocal download_link
-                download_link = json_data['link']
+                    nonlocal download_link
+                    download_link = json_data["link"]
 
-                raise exceptions.Ok
-            
+                    raise exceptions.Ok
+
+            except Exception as e:
+                #   Ловим все исключения. При остановке остальные таски
+                #   получат Server Disconnected exception
+                if isinstance(e, exceptions.Ok):
+                    #   Делаем проброс, чтобы asyncio.wait остановился
+                    raise e
 
         tasks.add(get_download_link(cmd.file_id, host))
 
-    # done, pending = asyncio.wait(tasks, timeout=2, return_when=asyncio.FIRST_EXCEPTION)
 
-
-    loop = asyncio.get_event_loop()
-    done, pending = loop.run_until_complete(
-        asyncio.wait(tasks, timeout=2.0, return_when=asyncio.FIRST_EXCEPTION)
+    done, pending = await asyncio.wait(
+        tasks, timeout=2.0, return_when=asyncio.FIRST_EXCEPTION
     )
-    # for coro in done_first:
-    #     try:
-    #         print(coro.result())
-    #     except TimeoutError:
-    #         print("cleanup after error before exit")
+    
+    if download_link is None:
+        raise exceptions.NoConnectionToServer
 
-    for p in pending:
-        p.cancel()
-        with suppress(asyncio.CancelledError):
-            loop.run_until_complete(p)
+    logger.error(f"LINK: {download_link}")
 
-    print('LINK: ', download_link)
+    #  Скачиваем файл, используя полученную ссылку
+    async with uow:
+        model = await uow.file_repository.add(cmd.account_id)
+
+        response = await session.get(download_link)
+        assert response.status == 200
+        # content_length = int(response.headers['Content-Length'])
+
+        print('@@@@@@@@@@@')
+        print(response.content.iter_chunked(1000))
+
+        # f = io.BytesIO()
+        # f.write(await r.content.read(content_length))
+        # assert data == f.getvalue()
+
+        # size = await uow.file_repository.store(
+        #     model.id, get_coro_with_bytes_func
+        # )
+
+        # model = await uow.file_repository.mark_as_stored(
+        #     model.id, cmd.filename, size
+        # )
+        # await uow.commit()
+
 
     await session.close()
