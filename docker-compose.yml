@@ -6,7 +6,7 @@ volumes:
     driver_opts:
       type: cifs
       o: uid=${STORAGE_UID},gid=${STORAGE_GID},sec=${STORAGE_SEC},dir_mode=${STORAGE_DIR_MODE},file_mode=${STORAGE_FILE_MODE},username=${STORAGE_USER},password=${STORAGE_PASSWORD},vers=${STORAGE_VERS},nobrl
-      device: //10.95.27.244/${STORAGE_FOLDER}/_TEST
+      device: ${STORAGE_FOLDER}
 
 services:
   db:
@@ -73,6 +73,22 @@ services:
         max-size: "200k"
         max-file: "10"
     command: ["python", "/backend/broker.py"]
+
+  worker:
+    build:
+        context: ./backend
+        dockerfile: ./Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    command: ["python", "/backend/worker.py"]
 
   # http_2:
   #   build:

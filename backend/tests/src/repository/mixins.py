@@ -10,7 +10,15 @@ class CommonMixin:
     @classmethod
     def _cmp(cls, a: OrderedDict, b: BaseModel):
         for key in a:
-            assert a[key] == getattr(b, key)
+            x = a[key]
+            y = getattr(b, key)
+
+            if type(x) is datetime:
+                x = int(x.timestamp())
+
+            if type(y) is datetime:
+                y = int(y.timestamp())
+
 
 class AccountMixin:
     DEFAULT_ACCOUNT_PARAMETERS = OrderedDict(
@@ -100,24 +108,24 @@ class FileMixin:
     )
 
     FILE_ADD_QUERY = f"""
-                    INSERT INTO {settings.files_table}
-                        (
-                            id,
-                            stored_id,
-                            name,
-                            size,
-                            created,
-                            has_stored,
-                            stored,
-                            has_deleted,
-                            deleted,
-                            has_erased,
-                            erased,
-                            account_id
-                        )
-                    VALUES
-                        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
-                    """
+        INSERT INTO {settings.files_table}
+            (
+                id,
+                stored_id,
+                name,
+                size,
+                created,
+                has_stored,
+                stored,
+                has_deleted,
+                deleted,
+                has_erased,
+                erased,
+                account_id
+            )
+        VALUES
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
+        """
 
     @classmethod
     async def _create_file(
@@ -171,6 +179,7 @@ class FileMixin:
             conn, *cls.DEFAULT_DELETED_FILE_PARAMETERS.values(), account_id
         )
 
+
 class LinkMixin:
     DEFAULT_DOWNLOAD_LINK_PARAMETERS = OrderedDict(
         [
@@ -205,7 +214,13 @@ class LinkMixin:
 
     @classmethod
     async def _create_link(
-        cls, conn, id: UUID, type: str, created: datetime, expired: datetime, file_id: UUID
+        cls,
+        conn,
+        id: UUID,
+        type: str,
+        created: datetime,
+        expired: datetime,
+        file_id: UUID,
     ) -> UUID:
         await conn.execute(
             cls.LINK_ADD_QUERY, id, type, created, expired, file_id
@@ -222,4 +237,106 @@ class LinkMixin:
     async def _create_default_upload_link(cls, conn, file_id: UUID) -> UUID:
         return await cls._create_link(
             conn, *cls.DEFAULT_UPLOAD_LINK_PARAMETERS.values(), file_id
+        )
+
+
+class BrokerMessageMixin:
+    DEFAULT_OUT_BROKER_MESSAGE_PARAMETERS = OrderedDict(
+        [
+            ("id", uuid4()),
+            ("direction", "O"),
+            ("app", "APP"),
+            ("key", "KEY"),
+            ("body", {"key": "value"}),
+            ("has_executed", False),
+            ("created", tz_now()),
+            ("updated", tz_now()),
+            ("has_execution_stopped", False),
+            ("count_of_retries", 0),
+            ("next_retry_at", tz_now()),
+            ("seconds_to_next_retry", 1),
+        ]
+    )
+
+    DEFAULT_IN_BROKER_MESSAGE_PARAMETERS = OrderedDict(
+        [
+            ("id", uuid4()),
+            ("direction", "I"),
+            ("app", "APP"),
+            ("key", "KEY"),
+            ("body", {"key": "value"}),
+            ("has_executed", False),
+            ("created", tz_now()),
+            ("updated", tz_now()),
+            ("has_execution_stopped", False),
+            ("count_of_retries", 0),
+            ("next_retry_at", tz_now()),
+            ("seconds_to_next_retry", 1),
+        ]
+    )
+
+    BROKER_MESSAGE_ADD_QUERY = f"""
+                    INSERT INTO {settings.broker_messages_table}
+                        (
+                            id,
+                            direction,
+                            app,
+                            "key",
+                            body,
+                            has_executed,
+                            created,
+                            updated,
+                            has_execution_stopped,
+                            count_of_retries,
+                            next_retry_at,
+                            seconds_to_next_retry
+                        )
+                    VALUES
+                        ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $12);
+                    """
+
+    @classmethod
+    async def _create_broker_message(
+        cls,
+        conn,
+        id: UUID,
+        direction: str,
+        app: str,
+        key: str,
+        body: dict,
+        has_executed: bool,
+        created: datetime,
+        updated: datetime,
+        has_execution_stopped: bool,
+        count_of_retries: int,
+        next_retry_at: datetime,
+        seconds_to_next_retry: int,
+    ) -> UUID:
+        await conn.execute(
+            cls.BROKER_MESSAGE_ADD_QUERY,
+            id,
+            direction,
+            app,
+            key,
+            body,
+            has_executed,
+            created,
+            updated,
+            has_execution_stopped,
+            count_of_retries,
+            next_retry_at,
+            seconds_to_next_retry,
+        )
+        return id
+
+    @classmethod
+    async def _create_default_out_broker_message(cls, conn) -> UUID:
+        return await cls._create_broker_message(
+            conn, *cls.DEFAULT_OUT_BROKER_MESSAGE_PARAMETERS.values()
+        )
+
+    @classmethod
+    async def _create_default_in_broker_message(cls, conn) -> UUID:
+        return await cls._create_broker_message(
+            conn, *cls.DEFAULT_IN_BROKER_MESSAGE_PARAMETERS.values()
         )

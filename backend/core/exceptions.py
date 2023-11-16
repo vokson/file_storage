@@ -31,6 +31,10 @@ class NoConnectionToServer(ApiException):
     pass
 
 
+class FileSizeError(ApiException):
+    pass
+
+
 ### ACCOUNT
 
 

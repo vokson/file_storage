@@ -56,6 +56,9 @@ class DeleteFile(Command):
 class CloneFile(Command):
     account_id: UUID
     file_id: UUID
+    name: str
+    size: int
+
 
 
 @pydantic_dataclass

@@ -162,7 +162,7 @@ class TestFileRepository(
         assert row is not None
 
     @pytest.mark.asyncio
-    async def test_bytes(self, rollback_file_repository, file_storage):
+    async def test_take(self, rollback_file_repository, file_storage):
         name = "TEST NAME"
         data = b'1234567890'
 
@@ -173,7 +173,7 @@ class TestFileRepository(
         assert True == Path(path).is_file()
 
         model = await rollback_file_repository.mark_as_stored(model.id, name, size)
-        gen = await rollback_file_repository.bytes(model.id)
+        gen = await rollback_file_repository.take(model.id)
         f = io.BytesIO()
         async for chunk in gen:
             f.write(chunk)

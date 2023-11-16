@@ -29,7 +29,7 @@ class AbstractFileRepository(ABC):
         pass
 
     @abstractmethod
-    async def bytes(
+    async def take(
         self, file_id: UUID
     ) -> Coroutine[None, None, AsyncGenerator[bytes, None]]:
         pass

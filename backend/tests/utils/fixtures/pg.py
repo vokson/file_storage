@@ -7,6 +7,7 @@ import pytest_asyncio
 from backend.adapters.account_repository.db import DatabaseAccountRepository
 from backend.adapters.file_repository.db import DatabaseFileRepository
 from backend.adapters.link_repository.db import DatabaseLinkRepository
+from backend.adapters.broker_message_repository.db import DatabaseBrokerMessageRepository
 from backend.core.config import db_dsl
 from backend.tools.decorators import backoff
 
@@ -29,7 +30,7 @@ async def rollback_pg(pg_pool):
 
     await conn.set_type_codec(
         "jsonb",
-        encoder=lambda x: x.json(),
+        encoder=lambda x: json.dumps(x, default=str),
         decoder=json.loads,
         schema="pg_catalog",
     )
@@ -49,7 +50,7 @@ async def pg(pg_pool):
 
     await conn.set_type_codec(
         "jsonb",
-        encoder=lambda x: x.json(),
+        encoder=lambda x: json.dumps(x, default=str),
         decoder=json.loads,
         schema="pg_catalog",
     )
@@ -87,3 +88,8 @@ async def rollback_file_repository(rollback_pg, file_storage):
 @pytest_asyncio.fixture()
 async def rollback_link_repository(rollback_pg):
     return DatabaseLinkRepository(rollback_pg)
+
+
+@pytest_asyncio.fixture()
+async def rollback_broker_message_repository(rollback_pg):
+    return DatabaseBrokerMessageRepository(rollback_pg)

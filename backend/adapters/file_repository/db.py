@@ -1,5 +1,6 @@
 import logging
 from typing import AsyncGenerator, Awaitable, Callable, Coroutine
+from collections.abc import AsyncIterator
 from uuid import UUID, uuid4
 
 from backend.adapters.file_storage.abstract import AbstractFileStorage
@@ -72,7 +73,7 @@ class DatabaseFileRepository(AbstractFileRepository):
         super().__init__(storage)
         self._conn = conn
 
-    async def _get(self, query:str, file_id: UUID) -> File:
+    async def _get(self, query: str, file_id: UUID) -> File:
         logger.debug(f"Get file with id {file_id}.")
         row = await self._conn.fetchrow(query, file_id)
         if not row:
@@ -101,32 +102,39 @@ class DatabaseFileRepository(AbstractFileRepository):
         )
         return await self.get_not_stored(file_id)
 
-    async def bytes(
+    async def take(
         self, file_id: UUID
     ) -> Coroutine[None, None, AsyncGenerator[bytes, None]]:
         logger.debug(f"Reading file {file_id}")
         model = await self.get(file_id)
         return self._storage.get(model.stored_id)
 
-    # TODO get_bytes - Awaitable or AsyncStreamIterator (StopAsyncIteration)
-
     async def store(
         self,
         file_id: UUID,
-        get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray]],
+        get_bytes: Callable[[int], Awaitable[bytearray]]
+        | Callable[[int], AsyncIterator[bytes]],
     ) -> int:
         logger.debug(f"Storing file {file_id}")
         model = await self.get_not_stored(file_id)
-        return await self._storage.save(model.stored_id, get_coro_with_bytes_func)
+        return await self._storage.save(model.stored_id, get_bytes)
 
-    async def mark_as_stored(self, file_id: UUID, name: str, size: int) -> File:
-        logger.debug(f"Mark file {file_id} as stored with name '{name}', size {size}")
-        await self._conn.execute(self.STORE_QUERY, file_id, name, size, tz_now())
+    async def mark_as_stored(
+        self, file_id: UUID, name: str, size: int
+    ) -> File:
+        logger.debug(
+            f"Mark file {file_id} as stored with name '{name}', size {size}"
+        )
+        await self._conn.execute(
+            self.STORE_QUERY, file_id, name, size, tz_now()
+        )
         return await self.get_not_stored(file_id)
 
     async def delete(self, account_id: UUID, file_id: UUID) -> File:
         logger.info(f"Delete file with id {file_id} by account {account_id}")
-        await self._conn.execute(self.DELETE_QUERY, account_id, file_id, tz_now())
+        await self._conn.execute(
+            self.DELETE_QUERY, account_id, file_id, tz_now()
+        )
         return await self.get_deleted(file_id)
 
     async def erase(self, file_id: UUID):

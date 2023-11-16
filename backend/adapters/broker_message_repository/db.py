@@ -114,7 +114,7 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
         key: str,
         body: dict,
         delay_in_seconds: int,
-    ):
+    ) -> BrokerMessage:
         id = uuid4()
         logger.debug(
             f"""
@@ -134,24 +134,27 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
             tz_now(),
             tz_now(),
             False,
-            1,
+            0,
             tz_now(delay_in_seconds),
             1,
         )
 
-        await self.get_by_id(id)
+        return await self.get_by_id(id)
 
-    async def add_outgoing(self, key: str, body: dict, delay_in_seconds: int):
-        await self._add(
+    async def add_outgoing(
+        self, key: str, body: dict, delay_in_seconds: int
+    ) -> BrokerMessage:
+        return await self._add(
             self.OUT_DIRECTION, settings.app_name, key, body, delay_in_seconds
         )
 
-    async def add_incoming(self, id: UUID, app: str, key: str, body: dict):
+    async def add_incoming(
+        self, id: UUID, app: str, key: str, body: dict
+    ) -> BrokerMessage:
         try:
-            await self.get_by_id(id, self.IN_DIRECTION)
+            return await self.get_by_id(id, self.IN_DIRECTION)
         except exceptions.FileNotFound:
-            await self._add(self.IN_DIRECTION, app, key, body, 0)
-
+            return await self._add(self.IN_DIRECTION, app, key, body, 0)
 
     async def mark_as_executed(self, ids: list[UUID]):
         logger.debug(f"Mark broker messages as executed. IDs: {ids}")
@@ -165,10 +168,9 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
             tz_now(),
         )
         await self._conn.execute(
-            self.MARK_AS_FAILED_QUERY,
-            ids,
-            settings.broker.publish_retry_count
+            self.MARK_AS_FAILED_QUERY, ids, settings.broker.publish_retry_count
         )
+
 
 async def get_db_broker_message_repository(
     conn,

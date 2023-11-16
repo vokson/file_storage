@@ -7,7 +7,7 @@ import pytest
 import pytest_asyncio
 from aiohttp import FormData
 
-from backend.api.responses.files import FileResponse, FileResponseWithLink
+from backend.api.responses.files import FileResponse, FileResponseWithLink, NotStoredFileResponse
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain.models import File
@@ -37,7 +37,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
     @pytest_asyncio.fixture(autouse=True)
     async def setup(self, pg):
         self._conn = pg
-        await self.clead_db()
+        await self.clean_db()
         async with self._conn.transaction():
             (
                 self._account_id,
@@ -47,13 +47,14 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
         self._base_url = settings.server
         self._headers = {"Authorization": str(self._auth_token)}
 
-    async def clead_db(self):
+    async def clean_db(self):
         async with self._conn.transaction():
             await self._conn.execute(
                 """
                                 TRUNCATE links CASCADE;
                                 TRUNCATE files CASCADE;
                                 TRUNCATE accounts CASCADE;
+                                TRUNCATE broker_messages CASCADE;
                                """
             )
 
@@ -73,7 +74,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
         assert response_model.name == self.DEFAULT_FILENAME
         assert response_model.size == self.DEFAULT_FILESIZE
 
-        await self.clead_db()
+        await self.clean_db()
 
     @pytest.mark.asyncio
     async def test_get_if_not_exist(self, session):
@@ -83,7 +84,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
             assert r.status == 404
             assert await r.text() == "File.Error.NotFound"
 
-        await self.clead_db()
+        await self.clean_db()
 
     @pytest.mark.asyncio
     async def test_delete(self, session, file_repository):
@@ -92,12 +93,12 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
         async with session.delete(
             self._files_item_url(model.id), headers=self._headers
         ) as r:
-            assert r.status == 200
+            assert r.status == 204
 
         with pytest.raises(exceptions.FileNotFound):
             await file_repository.get(model.id)
 
-        await self.clead_db()
+        await self.clean_db()
 
     @pytest.mark.asyncio
     async def test_delete_if_not_exist(self, session):
@@ -107,7 +108,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
             assert r.status == 404
             assert await r.text() == "File.Error.NotFound"
 
-        await self.clead_db()
+        await self.clean_db()
 
     @pytest.mark.asyncio
     async def test_upload_and_download(self, session):
@@ -115,7 +116,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
         #  TAKE UPLOAD URL
         async with session.post(self._files_url(), headers=self._headers) as r:
             assert r.status == 200
-            response_model = FileResponseWithLink(**await r.json())
+            response_model = NotStoredFileResponse(**await r.json())
             upload_link = response_model.link
             file_id = response_model.id
 
@@ -148,4 +149,4 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
             f.write(await r.content.read(content_length))
             assert data == f.getvalue()
 
-        await self.clead_db()
+        await self.clean_db()

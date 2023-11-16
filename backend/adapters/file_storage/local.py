@@ -1,7 +1,9 @@
 import logging
 import os
+import inspect
 from pathlib import Path
 from typing import AsyncGenerator, Awaitable, Callable
+from collections.abc import AsyncIterator
 from uuid import UUID
 
 from aiofiles import open as aopen
@@ -22,13 +24,13 @@ class LocalFileStorage(AbstractFileStorage):
     def generate_path(self, id: UUID) -> str:
         return os.path.join(self._storage_path, str(id)[:2], str(id))
 
-    async def get(self, id: UUID)-> AsyncGenerator[bytes, None]:
+    async def get(self, id: UUID) -> AsyncGenerator[bytes, None]:
         path = self.generate_path(id)
 
         if not os.path.isfile(path):
             raise exceptions.FileNotFound
 
-        async with aopen(path, 'rb') as f:
+        async with aopen(path, "rb") as f:
             while True:
                 chunk = await f.read(CHUNK_SIZE)
 
@@ -40,21 +42,30 @@ class LocalFileStorage(AbstractFileStorage):
     async def save(
         self,
         id: UUID,
-        get_coro_with_bytes_func: Callable[[int], Awaitable[bytearray|None]]
+        get_bytes: Callable[[int], Awaitable[bytearray]]
+        | Callable[[int], AsyncIterator[bytes]],
     ) -> int:
         size = 0
         path = self.generate_path(id)
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
 
-        async with aopen(path, 'wb') as f:
-            while True:
-                chunk = await get_coro_with_bytes_func(CHUNK_SIZE)
+        async with aopen(path, "wb") as f:
+            if inspect.iscoroutinefunction(get_bytes):
+                print('COROUTINE')
+                while True:
+                    chunk = await get_bytes(CHUNK_SIZE)
 
-                if not chunk:
-                    break
+                    if not chunk:
+                        break
 
-                size += len(chunk)
-                await f.write(chunk)
+                    size += len(chunk)
+                    await f.write(chunk)
+
+            else:
+                print('ASYNC ITERATOR')
+                async for chunk in get_bytes(CHUNK_SIZE):
+                    size += len(chunk)
+                    await f.write(chunk)
 
         return size
 
@@ -68,6 +79,7 @@ class LocalFileStorage(AbstractFileStorage):
             raise exceptions.FileNotFound
 
         Path(path).unlink(missing_ok=True)
+
 
 async def get_local_file_storage() -> AbstractFileStorage:
     return LocalFileStorage(settings.storage_path)
