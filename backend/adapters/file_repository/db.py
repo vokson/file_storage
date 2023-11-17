@@ -91,7 +91,9 @@ class DatabaseFileRepository(AbstractFileRepository):
         return await self._get(self.GET_DELETED_BY_ID_QUERY, id)
 
     async def add(self, account_id: UUID, file_id: UUID | None = None) -> File:
-        file_id = file_id or uuid4()
+        if file_id is None:
+            file_id = uuid4()
+
         stored_id = uuid4()
         logger.debug(
             f"Add empty file with account_id {account_id}, "
