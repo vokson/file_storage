@@ -13,7 +13,7 @@ from backend.api.responses.files import (
 )
 from backend.core import exceptions
 from backend.core.config import settings
-from backend.domain import commands, events
+from backend.domain import commands, events, models
 from backend.service_layer.uow import AbstractUnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,14 @@ async def get(
         **dict(file_model), link=cmd.make_download_url(link_model.id)
     )
 
+async def get_stored_and_not_deleted(
+    cmd: commands.GetStoredAndNotDeletedFiles,
+    uow: AbstractUnitOfWork,
+) -> list[models.File]:
+    async with uow:
+        return await uow.file_repository.get_stored_and_not_deleted(
+            cmd.chunk_size, cmd.offset
+        )
 
 async def add(
     cmd: commands.AddFile,
@@ -177,7 +185,7 @@ async def clone(
         if download_link is None:
             raise exceptions.NoConnectionToServer
 
-        logger.warning(f"LINK: {download_link}")
+        logger.debug(f"File to cloned using download link: {download_link}")
 
         #  Скачиваем файл, используя полученную ссылку
         async with uow:
@@ -189,8 +197,6 @@ async def clone(
             size = await uow.file_repository.store(
                 model.id, response.content.iter_chunked
             )
-            logger.warning(f"SIZE: {size}")
-            logger.warning(f"CMD.SIZE: {cmd.size}")
 
             if size != cmd.size:
                 raise exceptions.FileSizeError

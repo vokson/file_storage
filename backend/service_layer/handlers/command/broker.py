@@ -110,3 +110,12 @@ async def file_stored_handler(uow: AbstractUnitOfWork, data: dict):
             data["account_id"], data["id"], data["name"], data["size"]
         )
     )
+
+
+async def delete_executed(
+    cmd: commands.DeleteExecutedBrokerMessages,
+    uow: AbstractUnitOfWork,
+):
+    async with uow:
+        await uow.broker_message_repository.delete_executed()
+        await uow.commit()

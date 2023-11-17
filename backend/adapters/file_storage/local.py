@@ -47,12 +47,10 @@ class LocalFileStorage(AbstractFileStorage):
     ) -> int:
         size = 0
         path = self.generate_path(id)
-        print(f'PATH: {path}')
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
 
         async with aopen(path, "wb") as f:
             if inspect.iscoroutinefunction(get_bytes):
-                print('COROUTINE')
                 while True:
                     chunk = await get_bytes(CHUNK_SIZE)
 
@@ -63,10 +61,8 @@ class LocalFileStorage(AbstractFileStorage):
                     await f.write(chunk)
 
             else:
-                print('ASYNC ITERATOR')
                 async for chunk in get_bytes(CHUNK_SIZE):
                     size += len(chunk)
-                    print('size', size)
                     await f.write(chunk)
 
         return size

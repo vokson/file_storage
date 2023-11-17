@@ -21,6 +21,12 @@ class DatabaseFileRepository(AbstractFileRepository):
                     WHERE id = $1 AND has_stored = TRUE AND has_deleted = FALSE;
                     """
 
+    GET_ALL_STORED_QUERY = f"""
+                    SELECT * FROM {settings.files_table}
+                    WHERE has_stored = TRUE AND has_deleted = FALSE
+                    LIMIT $1 OFFSET $2;
+                    """
+
     GET_DELETED_BY_ID_QUERY = f"""
                     SELECT * FROM {settings.files_table}
                     WHERE id = $1
@@ -86,6 +92,15 @@ class DatabaseFileRepository(AbstractFileRepository):
 
     async def get_not_stored(self, id: UUID) -> File:
         return await self._get(self.GET_BY_ID_QUERY, id)
+
+    async def get_stored_and_not_deleted(self, chunk_size: int, offset: int) -> list[File]:
+        logger.debug(f"Get stored and not deleted files.")
+        rows = await self._conn.fetch(
+            self.GET_ALL_STORED_QUERY,
+            chunk_size,
+            offset
+        )
+        return [self._convert_row_to_obj(x) for x in rows]
 
     async def get_deleted(self, id: UUID) -> File:
         return await self._get(self.GET_DELETED_BY_ID_QUERY, id)

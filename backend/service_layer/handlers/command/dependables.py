@@ -7,6 +7,7 @@ COMMAND_HANDLERS = {
 
     # FILE
     commands.GetFile: files.get,
+    commands.GetStoredAndNotDeletedFiles: files.get_stored_and_not_deleted,
     commands.DownloadFile: files.download,
 
     commands.AddFile: files.add,
@@ -19,6 +20,7 @@ COMMAND_HANDLERS = {
     # BROKER
     commands.GetMessagesToBeSendToBroker: broker.get_not_executed_outgoing,
     commands.GetMessagesReceivedFromBroker: broker.get_not_executed_incoming,
+    commands.DeleteExecutedBrokerMessages: broker.delete_executed,
 
     commands.AddIncomingBrokerMessage: broker.add_incoming,
     commands.AddOutgoingBrokerMessage: broker.add_outgoing,

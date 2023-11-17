@@ -52,3 +52,7 @@ class AbstractBrokerMessageRepository(ABC):
     @abstractmethod
     async def schedule_next_retry(self, ids: list[UUID]):
         pass
+
+    @abstractmethod
+    async def delete_executed(self):
+        pass

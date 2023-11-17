@@ -29,6 +29,12 @@ class GetFile(Command):
 
 
 @dataclass
+class GetStoredAndNotDeletedFiles(Command):
+    chunk_size: int
+    offset: int
+
+
+@dataclass
 class AddFile(Command):
     account_id: UUID
     make_upload_url: Callable[[UUID], str]
@@ -58,7 +64,6 @@ class CloneFile(Command):
     file_id: UUID
     name: str
     size: int
-
 
 
 @pydantic_dataclass
@@ -122,3 +127,7 @@ class ConsumeMessageFromBroker(Command):
 @pydantic_dataclass
 class ExecuteBrokerMessage(Command):
     message: BrokerMessage
+
+
+class DeleteExecutedBrokerMessages(Command):
+    pass

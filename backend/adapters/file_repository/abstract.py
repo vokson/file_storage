@@ -21,6 +21,12 @@ class AbstractFileRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_stored_and_not_deleted(
+        self, chunk_size: int, offset: int
+    ) -> list[File]:
+        pass
+
+    @abstractmethod
     async def get_not_stored(self, id: UUID) -> File:
         pass
 
@@ -43,7 +49,9 @@ class AbstractFileRepository(ABC):
         pass
 
     @abstractmethod
-    async def mark_as_stored(self, file_id: UUID, name: str, size: int) -> File:
+    async def mark_as_stored(
+        self, file_id: UUID, name: str, size: int
+    ) -> File:
         pass
 
     @abstractmethod

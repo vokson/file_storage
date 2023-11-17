@@ -69,6 +69,11 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
                             WHERE id = ANY($1::uuid[]) AND count_of_retries >= $2;
                         """
 
+    DELETE_EXECUTED_QUERY = f"""
+                            DELETE FROM {settings.broker_messages_table}
+                            WHERE has_executed = TRUE;
+                        """
+
     async def get_by_id(
         self, id: UUID, direction: str | None = None
     ) -> BrokerMessage:
@@ -170,6 +175,10 @@ class DatabaseBrokerMessageRepository(AbstractBrokerMessageRepository):
         await self._conn.execute(
             self.MARK_AS_FAILED_QUERY, ids, settings.broker.publish_retry_count
         )
+
+    async def delete_executed(self):
+        logger.info(f"Delete executed broker messages")
+        await self._conn.execute(self.DELETE_EXECUTED_QUERY)
 
 
 async def get_db_broker_message_repository(
