@@ -181,7 +181,7 @@ async def clone(
 
         #  Скачиваем файл, используя полученную ссылку
         async with uow:
-            model = await uow.file_repository.add(cmd.account_id)
+            model = await uow.file_repository.add(cmd.account_id, cmd.file_id)
 
             response = await session.get(download_link)
             assert response.status == 200
