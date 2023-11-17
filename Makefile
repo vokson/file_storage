@@ -10,7 +10,3 @@ test:
 	sudo docker compose -f ./backend/tests/docker-compose.yml  --env-file=./.env up --build
 test_down:
 	sudo docker compose -f ./backend/tests/docker-compose.yml  --env-file=./.env down -v
-
-# pollute:
-# 	docker compose exec --workdir /opt/app/src/migrations auth python pollute.py && \
-# 	docker compose exec --workdir /opt/app/src/migrations storage python pollute.py

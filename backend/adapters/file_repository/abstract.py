@@ -25,7 +25,7 @@ class AbstractFileRepository(ABC):
         pass
 
     @abstractmethod
-    async def add(self) -> File:
+    async def add(self, account_id: UUID, file_id: UUID | None = None) -> File:
         pass
 
     @abstractmethod

@@ -177,7 +177,7 @@ async def clone(
         if download_link is None:
             raise exceptions.NoConnectionToServer
 
-        logger.error(f"LINK: {download_link}")
+        logger.warning(f"LINK: {download_link}")
 
         #  Скачиваем файл, используя полученную ссылку
         async with uow:
@@ -189,6 +189,8 @@ async def clone(
             size = await uow.file_repository.store(
                 model.id, response.content.iter_chunked
             )
+            logger.warning(f"SIZE: {size}")
+            logger.warning(f"CMD.SIZE: {cmd.size}")
 
             if size != cmd.size:
                 raise exceptions.FileSizeError

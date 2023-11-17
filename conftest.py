@@ -1,8 +1,6 @@
 " Настройки для локального тестирования"
 
 import asyncio
-import os
-import sys
 
 import pytest
 
