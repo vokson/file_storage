@@ -1,5 +1,5 @@
 from backend.domain import commands
-from backend.service_layer.handlers.command import accounts, broker, files
+from backend.service_layer.handlers.command import accounts, broker, files, links
 
 COMMAND_HANDLERS = {
     # ACCOUNT
@@ -16,6 +16,10 @@ COMMAND_HANDLERS = {
     commands.DeleteFile: files.delete,
     commands.EraseFile: files.erase,
     commands.CloneFile: files.clone,
+    commands.EraseDeletedFiles: files.erase_deleted,
+
+    # LINK
+    commands.DeleteExpiredLinks: links.delete_expired,
 
     # BROKER
     commands.GetMessagesToBeSendToBroker: broker.get_not_executed_outgoing,

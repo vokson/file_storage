@@ -39,7 +39,8 @@ class Settings(BaseSettings):
     db: DatabaseSettings
     broker: BrokerSettings
     storage_path: str = Field("/storage")
-    storage_time_for_links: int = Field(3600)
+    storage_time_for_links: int
+    storage_time_for_files: int
     accounts_table: str = Field("accounts")
     files_table: str = Field("files")
     links_table: str = Field("links")

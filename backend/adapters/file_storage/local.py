@@ -70,13 +70,20 @@ class LocalFileStorage(AbstractFileStorage):
     async def erase(
         self,
         id: UUID,
-    ):
+    )-> bool:
         path = self.generate_path(id)
 
         if not os.path.isfile(path):
-            raise exceptions.FileNotFound
+            logger.warning(f'{path} - NOT FOUND')
+            return True
 
-        Path(path).unlink(missing_ok=True)
+        try:
+            Path(path).unlink(missing_ok=True)
+            logger.info(f'{path} - ERASED')
+            return True
+        except Exception:
+            logger.info(f'{path} - FAILED')
+            return False
 
 
 async def get_local_file_storage() -> AbstractFileStorage:

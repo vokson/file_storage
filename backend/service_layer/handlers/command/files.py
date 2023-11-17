@@ -38,6 +38,7 @@ async def get(
         **dict(file_model), link=cmd.make_download_url(link_model.id)
     )
 
+
 async def get_stored_and_not_deleted(
     cmd: commands.GetStoredAndNotDeletedFiles,
     uow: AbstractUnitOfWork,
@@ -46,6 +47,7 @@ async def get_stored_and_not_deleted(
         return await uow.file_repository.get_stored_and_not_deleted(
             cmd.chunk_size, cmd.offset
         )
+
 
 async def add(
     cmd: commands.AddFile,
@@ -122,6 +124,26 @@ async def erase(
         return EmptyResponse()
 
 
+async def erase_deleted(
+    cmd: commands.EraseDeletedFiles,
+    uow: AbstractUnitOfWork,
+):
+    async with uow:
+        files_to_be_erased = (
+            await uow.file_repository.get_deleted_and_not_erased(
+                cmd.storage_time_in_sec
+            )
+        )
+
+        logger.warning("Start to erase files.")
+
+        for file in files_to_be_erased:
+            uow.push_message(commands.EraseFile(file.id))
+            logger.warning(f"{file.id} has been erased")
+
+        logger.warning(f"Count of erased files: {len(files_to_be_erased)}")
+
+
 async def clone(
     cmd: commands.CloneFile,
     uow: AbstractUnitOfWork,
@@ -155,7 +177,9 @@ async def clone(
         tasks = set()
         for host in settings.other_servers:
 
-            async def get_download_link(file_id: UUID, host: str) -> str | None:
+            async def get_download_link(
+                file_id: UUID, host: str
+            ) -> str | None:
                 try:
                     response = await session.get(
                         make_file_url(file_id, host=host), headers=headers
@@ -177,11 +201,10 @@ async def clone(
 
             tasks.add(get_download_link(cmd.file_id, host))
 
-
         done, pending = await asyncio.wait(
             tasks, timeout=2.0, return_when=asyncio.FIRST_EXCEPTION
         )
-        
+
         if download_link is None:
             raise exceptions.NoConnectionToServer
 
@@ -206,6 +229,5 @@ async def clone(
             )
 
             await uow.commit()
-
 
         await session.close()

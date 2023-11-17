@@ -44,3 +44,7 @@ class AbstractLinkRepository(ABC):
     @abstractmethod
     async def delete_by_file_id(self, file_id: UUID):
         pass
+
+    @abstractmethod
+    async def delete_expired(self):
+        pass

@@ -10,23 +10,15 @@ sys.path.append(BASE_DIR)
 
 from backend.api.dependables import get_bus
 from backend.domain import commands
-from backend.service_layer.message_bus import MessageBus
+from backend.core.config import settings
 
 logger = logging.getLogger()
-
-async def clean_links(bus: MessageBus):
-    cmd = commands.DeleteExpiredLinks()
-    await bus.handle(cmd)
-
-async def clean_broker_messages(bus: MessageBus):
-    cmd = commands.DeleteExecutedBrokerMessages()
-    await bus.handle(cmd)
 
 
 async def main():
     bus = await get_bus()
-    await clean_links(bus)
-    await clean_broker_messages(bus)
+    cmd = commands.EraseDeletedFiles(settings.storage_time_for_files)
+    await bus.handle(cmd)
 
 
 if __name__ == "__main__":

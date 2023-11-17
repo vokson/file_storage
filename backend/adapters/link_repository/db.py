@@ -31,6 +31,7 @@ class DatabaseLinkRepository(AbstractLinkRepository):
 
     DELETE_BY_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE id = $1;"
     DELETE_BY_FILE_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE file_id = $1;"
+    DELETE_EXPIRED_QUERY = f"DELETE FROM {settings.links_table} WHERE expired < now();"
 
 
     async def _get(self, link_id: UUID, link_type: str) -> Link:
@@ -89,6 +90,10 @@ class DatabaseLinkRepository(AbstractLinkRepository):
     async def delete_by_file_id(self, file_id: UUID):
         logger.debug(f"Delete link with file_id {file_id}")
         await self._conn.execute(self.DELETE_BY_FILE_ID_QUERY, file_id)
+
+    async def delete_expired(self):
+        logger.info(f"Delete expired links")
+        await self._conn.execute(self.DELETE_EXPIRED_QUERY)
 
 
 async def get_db_link_repository(conn) -> AbstractLinkRepository:

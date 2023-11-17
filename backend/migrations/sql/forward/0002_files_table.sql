@@ -6,13 +6,13 @@ CREATE TABLE files
     stored_id UUID NOT NULL,
     name TEXT NOT NULL,
     size BIGINT NOT NULL CHECK (size >= 0),
-    created TIMESTAMP NOT NULL,
-    has_stored BOOLEAN DEFAULT FALSE,
-    stored TIMESTAMP,
-    has_deleted BOOLEAN DEFAULT FALSE,
-    deleted TIMESTAMP,
-    has_erased BOOLEAN DEFAULT FALSE,
-    erased TIMESTAMP,
+    created TIMESTAMPTZ NOT NULL,
+    has_stored BOOLEAN NOT NULL DEFAULT FALSE,
+    stored TIMESTAMPTZ,
+    has_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted TIMESTAMPTZ,
+    has_erased BOOLEAN NOT NULL DEFAULT FALSE,
+    erased TIMESTAMPTZ,
 
     account_id UUID REFERENCES accounts (id) ON DELETE RESTRICT
 );

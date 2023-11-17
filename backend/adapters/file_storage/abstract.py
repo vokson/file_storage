@@ -23,5 +23,5 @@ class AbstractFileStorage(ABC):
     async def erase(
         self,
         id: UUID,
-    ):
+    ) -> bool:
         pass

@@ -67,8 +67,20 @@ class CloneFile(Command):
 
 
 @pydantic_dataclass
-class EraseFile(GetFile):
+class EraseFile(Command):
     file_id: UUID4
+
+
+@pydantic_dataclass
+class EraseDeletedFiles(Command):
+    storage_time_in_sec: int
+
+
+# ***** FILE *****
+
+
+class DeleteExpiredLinks(Command):
+    pass
 
 
 # ***** EVENT LOOP *****

@@ -21,7 +21,7 @@ class DatabaseFileRepository(AbstractFileRepository):
                     WHERE id = $1 AND has_stored = TRUE AND has_deleted = FALSE;
                     """
 
-    GET_ALL_STORED_QUERY = f"""
+    GET_ALL_STORED_AND_NOT_DELETED_QUERY = f"""
                     SELECT * FROM {settings.files_table}
                     WHERE has_stored = TRUE AND has_deleted = FALSE
                     LIMIT $1 OFFSET $2;
@@ -33,6 +33,13 @@ class DatabaseFileRepository(AbstractFileRepository):
                     AND has_stored = TRUE
                     AND has_deleted = TRUE
                     AND has_erased = FALSE;
+                    """
+
+    GET_ALL_DELETED_AND_NOT_ERASED_QUERY = f"""
+                    SELECT * FROM {settings.files_table}
+                    WHERE has_deleted = TRUE
+                    AND has_erased = FALSE
+                    AND deleted < $1;
                     """
 
     ADD_QUERY = f"""
@@ -93,17 +100,29 @@ class DatabaseFileRepository(AbstractFileRepository):
     async def get_not_stored(self, id: UUID) -> File:
         return await self._get(self.GET_BY_ID_QUERY, id)
 
-    async def get_stored_and_not_deleted(self, chunk_size: int, offset: int) -> list[File]:
+    async def get_stored_and_not_deleted(
+        self, chunk_size: int, offset: int
+    ) -> list[File]:
         logger.debug(f"Get stored and not deleted files.")
         rows = await self._conn.fetch(
-            self.GET_ALL_STORED_QUERY,
-            chunk_size,
-            offset
+            self.GET_ALL_STORED_AND_NOT_DELETED_QUERY, chunk_size, offset
         )
         return [self._convert_row_to_obj(x) for x in rows]
 
     async def get_deleted(self, id: UUID) -> File:
         return await self._get(self.GET_DELETED_BY_ID_QUERY, id)
+
+    async def get_deleted_and_not_erased(
+        self, storage_time_in_sec: int
+    ) -> list[File]:
+        logger.info(f"Get deleted and not erased files.")
+        print(tz_now(-1 * storage_time_in_sec))
+
+        rows = await self._conn.fetch(
+            self.GET_ALL_DELETED_AND_NOT_ERASED_QUERY,
+            tz_now(-1 * storage_time_in_sec),
+        )
+        return [self._convert_row_to_obj(x) for x in rows]
 
     async def add(self, account_id: UUID, file_id: UUID | None = None) -> File:
         if file_id is None:
@@ -157,8 +176,9 @@ class DatabaseFileRepository(AbstractFileRepository):
     async def erase(self, file_id: UUID):
         logger.debug(f"Erase file with id {file_id}")
         model = await self.get_deleted(file_id)
-        await self._conn.execute(self.ERASE_QUERY, file_id, tz_now())
-        await self._storage.erase(model.stored_id)
+        success = await self._storage.erase(model.stored_id)
+        if success:
+            await self._conn.execute(self.ERASE_QUERY, file_id, tz_now())
 
 
 async def get_db_file_repository(
