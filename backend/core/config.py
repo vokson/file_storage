@@ -35,6 +35,7 @@ class BrokerSettings(BaseSettings):
 class Settings(BaseSettings):
     app_name: str
     server: str
+    server_name: str
     other_servers: list[str]
     db: DatabaseSettings
     broker: BrokerSettings

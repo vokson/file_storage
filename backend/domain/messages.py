@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from typing import Any
 
-from pydantic import Field, model_serializer
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 from backend.domain import models
+from backend.core.config import settings
 
 
 @pydantic_dataclass
@@ -21,7 +21,7 @@ class FileMessage(Message):
 
     @property
     def to_broker(self) -> dict[str, Any]:
-        return self.file.to_broker()
+        return {**self.file.to_broker(), "server": settings.server_name}
 
 
 @pydantic_dataclass
