@@ -40,7 +40,7 @@ async def transform_file_response(
         headers={
             "Content-Type": "application/octet-stream",
             "Content-Length": str(size),
-            "Content-Disposition": f"attachment; filename={filename}",
+            "Content-Disposition": f'attachment; filename="{filename}"',
         }
     )
 
