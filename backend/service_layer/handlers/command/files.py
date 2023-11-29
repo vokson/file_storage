@@ -6,11 +6,8 @@ from uuid import UUID
 import aiohttp
 
 from backend.api.responses.abstract import EmptyResponse
-from backend.api.responses.files import (
-    FileResponse,
-    FileResponseWithLink,
-    NotStoredFileResponse,
-)
+from backend.api.responses.files import (FileResponse, FileResponseWithLink,
+                                         NotStoredFileResponse)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain import commands, events, models
@@ -25,7 +22,7 @@ async def get(
 ) -> FileResponseWithLink:
     async with uow:
         file_model = await uow.file_repository.get(cmd.file_id)
-        if file_model.account_id != cmd.account_id:
+        if file_model.account_name != cmd.account_name:
             raise exceptions.FileNotFound
 
         link_model = await uow.link_repository.add_download(
@@ -54,7 +51,7 @@ async def add(
     uow: AbstractUnitOfWork,
 ) -> NotStoredFileResponse:
     async with uow:
-        file_model = await uow.file_repository.add(cmd.account_id)
+        file_model = await uow.file_repository.add(cmd.account_name)
         link_model = await uow.link_repository.add_upload(
             file_model.id, settings.storage_time_for_links
         )
@@ -106,7 +103,7 @@ async def delete(
 ) -> EmptyResponse:
     async with uow:
         await uow.file_repository.get(cmd.file_id)
-        model = await uow.file_repository.delete(cmd.account_id, cmd.file_id)
+        model = await uow.file_repository.delete(cmd.account_name, cmd.file_id)
         await uow.link_repository.delete_by_file_id(cmd.file_id)
         await uow.commit()
 
@@ -160,7 +157,9 @@ async def clone(
 
         #  Если нет, определяем нужен ли данный файл в данном хранилище
         try:
-            account = await uow.account_repository.get_by_id(cmd.account_id)
+            account = await uow.account_repository.get_by_name(
+                cmd.account_name
+            )
         except exceptions.AccountNotFound:
             return
 
@@ -212,7 +211,9 @@ async def clone(
 
         #  Скачиваем файл, используя полученную ссылку
         async with uow:
-            model = await uow.file_repository.add(cmd.account_id, cmd.file_id)
+            model = await uow.file_repository.add(
+                cmd.account_name, cmd.file_id
+            )
 
             response = await session.get(download_link)
             assert response.status == 200

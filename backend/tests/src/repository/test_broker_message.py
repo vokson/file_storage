@@ -1,6 +1,6 @@
 import logging
-from uuid import uuid4
 from collections import OrderedDict
+from uuid import uuid4
 
 import pytest
 import pytest_asyncio
@@ -18,7 +18,7 @@ class TestBrokerMessageRepository(
     @pytest_asyncio.fixture(autouse=True)
     async def setup(self, rollback_pg):
         self._conn = rollback_pg
-        self._account_id, _ = await self._create_default_account(rollback_pg)
+        self._account_name, _ = await self._create_default_account(rollback_pg)
 
     @pytest.mark.asyncio
     async def test_get_by_id(self, rollback_broker_message_repository):
@@ -275,14 +275,11 @@ class TestBrokerMessageRepository(
                 WHERE id = $1;
                 """
 
-        for _ in range(settings.broker.publish_retry_count-1):
+        for _ in range(settings.broker.publish_retry_count - 1):
             await schedule_next()
-            row = await self._conn.fetchrow(
-                query, id
-            )
+            row = await self._conn.fetchrow(query, id)
             print(row)
 
         assert row is not None
-        assert row['has_executed'] is False
-        assert row['has_execution_stopped'] is True
-        
+        assert row["has_executed"] is False
+        assert row["has_execution_stopped"] is True

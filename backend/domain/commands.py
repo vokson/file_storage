@@ -17,13 +17,13 @@ class Command:
 
 
 @pydantic_dataclass
-class GetAccountIdByAuthToken(Command):
+class GetAccountNameByAuthToken(Command):
     auth_token: UUID4
 
 
 @dataclass
 class GetFile(Command):
-    account_id: UUID
+    account_name: str
     file_id: UUID
     make_download_url: Callable[[UUID], str]
 
@@ -36,7 +36,7 @@ class GetStoredAndNotDeletedFiles(Command):
 
 @dataclass
 class AddFile(Command):
-    account_id: UUID
+    account_name: str
     make_upload_url: Callable[[UUID], str]
 
 
@@ -54,13 +54,13 @@ class UploadFile(Command):
 
 @pydantic_dataclass
 class DeleteFile(Command):
-    account_id: UUID
+    account_name: str
     file_id: UUID
 
 
 @pydantic_dataclass
 class CloneFile(Command):
-    account_id: UUID
+    account_name: str
     file_id: UUID
     name: str
     size: int

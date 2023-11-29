@@ -5,9 +5,10 @@ import asyncpg
 import pytest_asyncio
 
 from backend.adapters.account_repository.db import DatabaseAccountRepository
+from backend.adapters.broker_message_repository.db import \
+    DatabaseBrokerMessageRepository
 from backend.adapters.file_repository.db import DatabaseFileRepository
 from backend.adapters.link_repository.db import DatabaseLinkRepository
-from backend.adapters.broker_message_repository.db import DatabaseBrokerMessageRepository
 from backend.core.config import db_dsl
 from backend.tools.decorators import backoff
 

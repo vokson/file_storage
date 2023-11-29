@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseAccountRepository(AbstractAccountRepository):
-    GET_BY_ID_QUERY = f"""
+    GET_BY_NAME_QUERY = f"""
                     SELECT * FROM {settings.accounts_table}
-                    WHERE id = $1;
+                    WHERE name = $1;
                     """
 
     GET_BY_TOKEN_QUERY = f"""
@@ -31,9 +31,9 @@ class DatabaseAccountRepository(AbstractAccountRepository):
 
         return self._convert_row_to_obj(row)
 
-    async def get_by_id(self, id: UUID) -> Account:
-        logger.debug(f"Get account with id {id}")
-        return await self._get(self.GET_BY_ID_QUERY, id)
+    async def get_by_name(self, name: str) -> Account:
+        logger.debug(f"Get account with name {name}")
+        return await self._get(self.GET_BY_NAME_QUERY, name)
 
     async def get_by_token(self, auth_token: UUID) -> Account:
         logger.debug(f"Get account with token {auth_token}")

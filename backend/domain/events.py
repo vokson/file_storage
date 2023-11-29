@@ -14,6 +14,7 @@ class Event:
 class FileDeleted(Event):
     file: File
 
+
 @pydantic_dataclass
 class FileStored(Event):
     file: File

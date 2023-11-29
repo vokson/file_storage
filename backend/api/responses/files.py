@@ -17,5 +17,6 @@ class FileResponse(Response):
     size: int
     stored: datetime
 
+
 class FileResponseWithLink(FileResponse):
     link: str

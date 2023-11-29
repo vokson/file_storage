@@ -8,8 +8,10 @@ class RepositoryException(Exception):
 
 ### API
 
+
 class Ok(ApiException):
     pass
+
 
 class AuthTokenFail(ApiException):
     pass

@@ -1,6 +1,6 @@
 import logging
-from typing import AsyncGenerator, Awaitable, Callable, Coroutine
 from collections.abc import AsyncIterator
+from typing import AsyncGenerator, Awaitable, Callable, Coroutine
 from uuid import UUID, uuid4
 
 from backend.adapters.file_storage.abstract import AbstractFileStorage
@@ -45,7 +45,7 @@ class DatabaseFileRepository(AbstractFileRepository):
     ADD_QUERY = f"""
                     INSERT INTO {settings.files_table}
                         (
-                            account_id,
+                            account_name,
                             id,
                             stored_id,
                             name,
@@ -70,7 +70,7 @@ class DatabaseFileRepository(AbstractFileRepository):
                     UPDATE {settings.files_table}
                     SET has_deleted = TRUE, deleted = $3
                     WHERE 
-                        account_id = $1 AND
+                        account_name = $1 AND
                         id = $2 AND
                         has_stored = TRUE AND
                         has_deleted = FALSE;
@@ -124,17 +124,19 @@ class DatabaseFileRepository(AbstractFileRepository):
         )
         return [self._convert_row_to_obj(x) for x in rows]
 
-    async def add(self, account_id: UUID, file_id: UUID | None = None) -> File:
+    async def add(
+        self, account_name: str, file_id: UUID | None = None
+    ) -> File:
         if file_id is None:
             file_id = uuid4()
 
         stored_id = uuid4()
         logger.debug(
-            f"Add empty file with account_id {account_id}, "
+            f"Add empty file with account name {account_name}, "
             f"id {file_id}, stored_id {stored_id}"
         )
         await self._conn.execute(
-            self.ADD_QUERY, account_id, file_id, stored_id, "", 0, tz_now()
+            self.ADD_QUERY, account_name, file_id, stored_id, "", 0, tz_now()
         )
         return await self.get_not_stored(file_id)
 
@@ -166,10 +168,10 @@ class DatabaseFileRepository(AbstractFileRepository):
         )
         return await self.get_not_stored(file_id)
 
-    async def delete(self, account_id: UUID, file_id: UUID) -> File:
-        logger.info(f"Delete file with id {file_id} by account {account_id}")
+    async def delete(self, account_name: UUID, file_id: UUID) -> File:
+        logger.info(f"Delete file with id {file_id} by account {account_name}")
         await self._conn.execute(
-            self.DELETE_QUERY, account_id, file_id, tz_now()
+            self.DELETE_QUERY, account_name, file_id, tz_now()
         )
         return await self.get_deleted(file_id)
 

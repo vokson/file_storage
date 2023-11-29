@@ -10,22 +10,38 @@ from backend.adapters.broker_message_repository.abstract import \
     AbstractBrokerMessageRepository
 from backend.adapters.broker_message_repository.db import \
     get_db_broker_message_repository
-from backend.adapters.db import get_db_conn, release_db_conn, init_db, close_db
+from backend.adapters.db import close_db, get_db_conn, init_db, release_db_conn
 from backend.adapters.file_repository.abstract import AbstractFileRepository
 from backend.adapters.file_repository.db import get_db_file_repository
 from backend.adapters.file_storage.abstract import AbstractFileStorage
 from backend.adapters.file_storage.local import get_local_file_storage
+from backend.adapters.http import close_http, get_http, init_http
 from backend.adapters.link_repository.abstract import AbstractLinkRepository
 from backend.adapters.link_repository.db import get_db_link_repository
 from backend.core.config import broker_url, db_dsl, settings
 
 logger = logging.getLogger(__name__)
 
+
+async def init_http_session():
+    await init_http()
+
+
+async def close_http_session():
+    await close_http()
+
+
+def get_http_session():
+    return get_http()
+
+
 async def init_db_pool():
     await init_db(**db_dsl)
 
+
 async def close_db_pool():
     await close_db()
+
 
 def get_db_connection():
     return get_db_conn(**db_dsl)
@@ -86,6 +102,7 @@ class UnitOfWork(AbstractUnitOfWork):
         | None = None,
         get_db_conn: Callable[..., Awaitable] | None = None,
         release_db_conn: Callable[..., Awaitable] | None = None,
+        get_session: Callable[..., Awaitable] | None = None,
         get_publisher: Callable[..., Awaitable] | None = None,
     ):
         super().__init__()
@@ -104,6 +121,7 @@ class UnitOfWork(AbstractUnitOfWork):
         self._get_broker_message_repository = (
             get_broker_message_repository or get_db_broker_message_repository
         )
+        self._get_http_session = get_session or get_http_session
         self._get_db_conn = get_db_conn or get_db_connection
         self._release_db_conn = release_db_conn or release_db_connection
         self._get_broker_publisher = get_publisher or get_broker_publisher
@@ -114,6 +132,9 @@ class UnitOfWork(AbstractUnitOfWork):
 
         if "broker_publisher" in self._bootstrap:
             self.broker_publisher = await self._get_broker_publisher()
+
+        if "http" in self._bootstrap:
+            self.session = await self._get_http_session()
 
     async def __aenter__(self):
         if "db" in self._bootstrap:

@@ -33,7 +33,7 @@ class MessageBus:
         results = []
 
         while queue:
-            logger.debug(f'QUEUE: {queue}')
+            logger.debug(f"QUEUE: {queue}")
             message = queue.pop(0)
 
             if isinstance(message, events.Event):
@@ -81,8 +81,7 @@ async def get_message_bus(
         list[Callable],
     ] = EVENT_HANDLERS,
     command_handlers: dict[
-        Type[commands.Command],
-        Callable
+        Type[commands.Command], Callable
     ] = COMMAND_HANDLERS,
 ):
     if not uow:

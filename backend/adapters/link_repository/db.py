@@ -30,13 +30,18 @@ class DatabaseLinkRepository(AbstractLinkRepository):
                     """
 
     DELETE_BY_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE id = $1;"
-    DELETE_BY_FILE_ID_QUERY = f"DELETE FROM {settings.links_table} WHERE file_id = $1;"
-    DELETE_EXPIRED_QUERY = f"DELETE FROM {settings.links_table} WHERE expired < now();"
-
+    DELETE_BY_FILE_ID_QUERY = (
+        f"DELETE FROM {settings.links_table} WHERE file_id = $1;"
+    )
+    DELETE_EXPIRED_QUERY = (
+        f"DELETE FROM {settings.links_table} WHERE expired < now();"
+    )
 
     async def _get(self, link_id: UUID, link_type: str) -> Link:
         logger.debug(f"Get link with id {link_id} and type {link_type}.")
-        row = await self._conn.fetchrow(self.GET_BY_ID_QUERY, link_id, link_type)
+        row = await self._conn.fetchrow(
+            self.GET_BY_ID_QUERY, link_id, link_type
+        )
         if not row:
             raise exceptions.FileNotFound
 

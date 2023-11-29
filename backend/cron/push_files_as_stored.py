@@ -12,6 +12,8 @@ from backend.api.dependables import get_bus
 from backend.domain import commands, messages
 from backend.service_layer.message_bus import MessageBus
 
+from backend.cron.init import cleanup, startup
+
 logger = logging.getLogger()
 
 CHUNK_SIZE = 1000
@@ -31,14 +33,20 @@ async def push(bus: MessageBus):
             message = messages.FileStored(file)
             await bus.handle(commands.AddOutgoingBrokerMessage(message))
 
-        logger.info(f'{len(files)} file with offset {offset} have been published')
-        
+        logger.info(
+            f"{len(files)} file with offset {offset} have been published"
+        )
+
         offset += len(files)
 
 
 async def main():
+    await startup()
+
     bus = await get_bus()
     await push(bus)
+
+    await cleanup()
 
 
 if __name__ == "__main__":

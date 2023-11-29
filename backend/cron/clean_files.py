@@ -9,16 +9,22 @@ BASE_DIR = os.path.dirname(
 sys.path.append(BASE_DIR)
 
 from backend.api.dependables import get_bus
-from backend.domain import commands
 from backend.core.config import settings
+from backend.domain import commands
+
+from backend.cron.init import cleanup, startup
 
 logger = logging.getLogger()
 
 
 async def main():
+    await startup()
+
     bus = await get_bus()
     cmd = commands.EraseDeletedFiles(settings.storage_time_for_files)
     await bus.handle(cmd)
+
+    await cleanup()
 
 
 if __name__ == "__main__":

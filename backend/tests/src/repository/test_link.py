@@ -17,8 +17,10 @@ class TestLinkRepository(
     @pytest_asyncio.fixture(autouse=True)
     async def setup(self, rollback_pg):
         self._conn = rollback_pg
-        self._account_id, _ = await self._create_default_account(rollback_pg)
-        self._file_id = await self._create_default_file(rollback_pg, self._account_id)
+        self._account_name, _ = await self._create_default_account(rollback_pg)
+        self._file_id = await self._create_default_file(
+            rollback_pg, self._account_name
+        )
 
     @pytest.mark.asyncio
     async def test_get_download(self, rollback_link_repository):
@@ -109,7 +111,9 @@ class TestLinkRepository(
         assert row is None
 
     @pytest.mark.asyncio
-    async def test_delete_by_link_id_if_not_exist(self, rollback_link_repository):
+    async def test_delete_by_link_id_if_not_exist(
+        self, rollback_link_repository
+    ):
         query = f"SELECT * FROM {settings.links_table};"
 
         await self._create_default_download_link(self._conn, self._file_id)
@@ -131,7 +135,9 @@ class TestLinkRepository(
         assert row is None
 
     @pytest.mark.asyncio
-    async def test_delete_by_file_id_if_not_exist(self, rollback_link_repository):
+    async def test_delete_by_file_id_if_not_exist(
+        self, rollback_link_repository
+    ):
         query = f"SELECT * FROM {settings.links_table};"
 
         await self._create_default_download_link(self._conn, self._file_id)

@@ -7,7 +7,8 @@ import pytest
 import pytest_asyncio
 from aiohttp import FormData
 
-from backend.api.responses.files import FileResponse, FileResponseWithLink, NotStoredFileResponse
+from backend.api.responses.files import (FileResponse, FileResponseWithLink,
+                                         NotStoredFileResponse)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain.models import File
@@ -29,7 +30,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
 
     async def _create_default_file(self, file_rep) -> File:
         async with self._conn.transaction():
-            model = await file_rep.add(self._account_id)
+            model = await file_rep.add(self._account_name)
             return await file_rep.mark_as_stored(
                 model.id, self.DEFAULT_FILENAME, self.DEFAULT_FILESIZE
             )
@@ -40,7 +41,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
         await self.clean_db()
         async with self._conn.transaction():
             (
-                self._account_id,
+                self._account_name,
                 self._auth_token,
             ) = await self._create_default_account(pg)
 
@@ -112,7 +113,6 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
 
     @pytest.mark.asyncio
     async def test_upload_and_download(self, session):
-
         #  TAKE UPLOAD URL
         async with session.post(self._files_url(), headers=self._headers) as r:
             assert r.status == 200
@@ -143,7 +143,7 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
         #  DOWNLOADING
         async with session.get(download_link) as r:
             assert r.status == 200
-            content_length = int(r.headers['Content-Length'])
+            content_length = int(r.headers["Content-Length"])
 
             f = io.BytesIO()
             f.write(await r.content.read(content_length))

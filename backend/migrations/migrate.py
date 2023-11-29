@@ -45,7 +45,9 @@ async def create_migrations(conn: Connection):
     )
 
 
-async def apply_migration(conn: Connection, path: str, filename: str, is_new: bool) -> bool:
+async def apply_migration(
+    conn: Connection, path: str, filename: str, is_new: bool
+) -> bool:
     migration_query = (
         """
         INSERT INTO __migrations__ (name, created)

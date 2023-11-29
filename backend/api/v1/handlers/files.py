@@ -17,7 +17,7 @@ from backend.service_layer.message_bus import MessageBus
 @middlewares.validate_path_parameters(GetRequestPath)
 async def get(
     request: web.Request,
-    _account_id: UUID,
+    _account_name: str,
     path_parameters: dict,
     bus: MessageBus | None = None,
 ) -> web.Response:
@@ -25,23 +25,24 @@ async def get(
     from ..routes import make_download_url
 
     cmd = commands.GetFile(
-        account_id=_account_id,
+        account_name=_account_name,
         file_id=path_parameters["file_id"],
         make_download_url=make_download_url,
     )
     return await transform_json_response(await bus.handle(cmd))
 
+
 @middlewares.verify_auth_token()
 async def post(
     request: web.Request,
-    _account_id: UUID,
+    _account_name: str,
     bus: MessageBus | None = None,
 ) -> web.Response:
     bus = bus or await get_bus()
     from ..routes import make_upload_url
 
     cmd = commands.AddFile(
-        account_id=_account_id,
+        account_name=_account_name,
         make_upload_url=make_upload_url,
     )
     return await transform_json_response(await bus.handle(cmd))
@@ -83,11 +84,13 @@ async def upload(
 @middlewares.validate_path_parameters(DeleteRequestPath)
 async def delete(
     request: web.Request,
-    _account_id: UUID,
+    _account_name: str,
     path_parameters: dict,
     bus: MessageBus | None = None,
 ) -> web.Response:
     bus = bus or await get_bus()
 
-    cmd = commands.DeleteFile(account_id=_account_id, file_id=path_parameters["file_id"])
+    cmd = commands.DeleteFile(
+        account_name=_account_name, file_id=path_parameters["file_id"]
+    )
     return await transform_json_response(await bus.handle(cmd), status=204)

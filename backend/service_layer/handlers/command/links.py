@@ -1,6 +1,5 @@
 import logging
 
-
 from backend.domain import commands
 from backend.service_layer.uow import AbstractUnitOfWork
 

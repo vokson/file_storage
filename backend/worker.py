@@ -56,7 +56,6 @@ class Worker(AbstractWorker):
             messages = await self._bus.handle(cmd)
 
 
-
 async def main():
     worker = Worker(await get_bus())
 

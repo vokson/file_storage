@@ -100,14 +100,14 @@ async def execute(
 
 async def file_deleted_handler(uow: AbstractUnitOfWork, data: dict):
     logger.debug("File deleted broker message handler")
-    uow.push_message(commands.DeleteFile(data["account_id"], data["id"]))
+    uow.push_message(commands.DeleteFile(data["account_name"], data["id"]))
 
 
 async def file_stored_handler(uow: AbstractUnitOfWork, data: dict):
     logger.debug("File stored broker message handler")
     uow.push_message(
         commands.CloneFile(
-            data["account_id"], data["id"], data["name"], data["size"]
+            data["account_name"], data["id"], data["name"], data["size"]
         )
     )
 

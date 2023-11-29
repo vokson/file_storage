@@ -23,7 +23,6 @@ class CommonMixin:
 class AccountMixin:
     DEFAULT_ACCOUNT_PARAMETERS = OrderedDict(
         [
-            ("id", uuid4()),
             ("name", "TEST ACCOUNT"),
             ("auth_token", uuid4()),
             ("is_active", True),
@@ -33,23 +32,20 @@ class AccountMixin:
     ACCOUNT_ADD_QUERY = f"""
                     INSERT INTO {settings.accounts_table}
                         (
-                            id,
                             name,
                             auth_token,
                             is_active
                         )
                     VALUES
-                        ($1, $2, $3, $4);
+                        ($1, $2, $3);
                     """
 
     @classmethod
     async def _create_account(
-        cls, conn, id: UUID, name: str, auth_token: UUID, is_active: bool
+        cls, conn, name: str, auth_token: UUID, is_active: bool
     ) -> tuple[UUID, UUID]:
-        await conn.execute(
-            cls.ACCOUNT_ADD_QUERY, id, name, auth_token, is_active
-        )
-        return id, auth_token
+        await conn.execute(cls.ACCOUNT_ADD_QUERY, name, auth_token, is_active)
+        return name, auth_token
 
     @classmethod
     async def _create_default_account(cls, conn) -> tuple[UUID, UUID]:
@@ -121,7 +117,7 @@ class FileMixin:
                 deleted,
                 has_erased,
                 erased,
-                account_id
+                account_name
             )
         VALUES
             ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
@@ -142,7 +138,7 @@ class FileMixin:
         deleted: datetime | None,
         has_erased: bool,
         erased: datetime | None,
-        account_id: UUID,
+        account_name: str,
     ) -> UUID:
         await conn.execute(
             cls.FILE_ADD_QUERY,
@@ -157,26 +153,28 @@ class FileMixin:
             deleted,
             has_erased,
             erased,
-            account_id,
+            account_name,
         )
         return id
 
     @classmethod
-    async def _create_default_file(cls, conn, account_id) -> UUID:
+    async def _create_default_file(cls, conn, account_name) -> UUID:
         return await cls._create_file(
-            conn, *cls.DEFAULT_FILE_PARAMETERS.values(), account_id
+            conn, *cls.DEFAULT_FILE_PARAMETERS.values(), account_name
         )
 
     @classmethod
-    async def _create_default_not_stored_file(cls, conn, account_id) -> UUID:
+    async def _create_default_not_stored_file(cls, conn, account_name) -> UUID:
         return await cls._create_file(
-            conn, *cls.DEFAULT_NOT_STORED_FILE_PARAMETERS.values(), account_id
+            conn,
+            *cls.DEFAULT_NOT_STORED_FILE_PARAMETERS.values(),
+            account_name,
         )
 
     @classmethod
-    async def _create_default_deleted_file(cls, conn, account_id) -> UUID:
+    async def _create_default_deleted_file(cls, conn, account_name) -> UUID:
         return await cls._create_file(
-            conn, *cls.DEFAULT_DELETED_FILE_PARAMETERS.values(), account_id
+            conn, *cls.DEFAULT_DELETED_FILE_PARAMETERS.values(), account_name
         )
 
 

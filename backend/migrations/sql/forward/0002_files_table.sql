@@ -14,5 +14,5 @@ CREATE TABLE files
     has_erased BOOLEAN NOT NULL DEFAULT FALSE,
     erased TIMESTAMPTZ,
 
-    account_id UUID REFERENCES accounts (id) ON DELETE RESTRICT
+    account_name TEXT REFERENCES accounts (name) ON DELETE RESTRICT
 );

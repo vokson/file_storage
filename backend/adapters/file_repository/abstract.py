@@ -31,7 +31,9 @@ class AbstractFileRepository(ABC):
         pass
 
     @abstractmethod
-    async def add(self, account_id: UUID, file_id: UUID | None = None) -> File:
+    async def add(
+        self, account_name: str, file_id: UUID | None = None
+    ) -> File:
         pass
 
     @abstractmethod
@@ -55,7 +57,7 @@ class AbstractFileRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, account_id: UUID, file_id: UUID) -> File:
+    async def delete(self, account_name: str, file_id: UUID) -> File:
         pass
 
     @abstractmethod

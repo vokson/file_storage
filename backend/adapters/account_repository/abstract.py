@@ -12,5 +12,9 @@ class AbstractAccountRepository(ABC):
         return Account(**dict(row.items()))
 
     @abstractmethod
+    async def get_by_name(self, name: str) -> Account:
+        pass
+
+    @abstractmethod
     async def get_by_token(self, auth_token: UUID) -> Account:
         pass

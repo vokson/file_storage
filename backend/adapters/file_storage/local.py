@@ -1,9 +1,9 @@
+import inspect
 import logging
 import os
-import inspect
+from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import AsyncGenerator, Awaitable, Callable
-from collections.abc import AsyncIterator
 from uuid import UUID
 
 from aiofiles import open as aopen
@@ -70,19 +70,19 @@ class LocalFileStorage(AbstractFileStorage):
     async def erase(
         self,
         id: UUID,
-    )-> bool:
+    ) -> bool:
         path = self.generate_path(id)
 
         if not os.path.isfile(path):
-            logger.warning(f'{path} - NOT FOUND')
+            logger.warning(f"{path} - NOT FOUND")
             return True
 
         try:
             Path(path).unlink(missing_ok=True)
-            logger.info(f'{path} - ERASED')
+            logger.info(f"{path} - ERASED")
             return True
         except Exception:
-            logger.info(f'{path} - FAILED')
+            logger.info(f"{path} - FAILED")
             return False
 
 

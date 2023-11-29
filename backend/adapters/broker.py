@@ -210,7 +210,9 @@ class RabbitConsumer(AbstractRabbitExchangeConnector):
         ampq_url,
         exchange,
         queue,
-        on_consume_message_callback: Callable[[str, str, str, dict], Awaitable[bool]],
+        on_consume_message_callback: Callable[
+            [str, str, str, dict], Awaitable[bool]
+        ],
         routing_key="#",
         exchange_type="topic",
         exchange_durability=True,
@@ -394,7 +396,6 @@ async def init_publisher(*args, **kwargs):
         logger.info("Publisher has been initialized.")
 
     return publisher
-
 
 
 async def init_consumer(*args, **kwargs):

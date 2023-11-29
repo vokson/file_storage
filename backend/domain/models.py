@@ -47,7 +47,7 @@ class CreatedMixin(BaseModel):
     created: datetime = Field(default_factory=tz_now)
 
 
-class Account(AbstractModel, IdMixin):
+class Account(AbstractModel):
     name: str
     auth_token: UUID4
     is_active: bool
@@ -57,7 +57,7 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     stored_id: UUID4
     name: str
     size: int
-    account_id: UUID4
+    account_name: str
     has_stored: bool = False
     stored: datetime | None = None
     has_deleted: bool = False
@@ -72,34 +72,12 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     def to_broker(self) -> dict[str, Any]:
         return {
             "id": self.id,
-            "account_id": self.account_id,
+            "account_name": self.account_name,
             "name": self.name,
             "size": self.size,
             "stored": self.stored,
             "deleted": self.deleted,
         }
-
-        # print(self.model_dump(
-        #     include={
-        #         "id": True,
-        #         "account_id": True,
-        #         "name": True,
-        #         "size": True,
-        #         "stored": True,
-        #         "deleted": True,
-        #     }
-        # ))
-
-        # return self.model_dump(
-        #     include={
-        #         "id": True,
-        #         "account_id": True,
-        #         "name": True,
-        #         "size": True,
-        #         "stored": True,
-        #         "deleted": True,
-        #     }
-        # )
 
 
 class Link(AbstractModel, IdMixin, CreatedMixin):

@@ -36,12 +36,14 @@ def verify_auth_token():
                 raise exceptions.AuthTokenFail
 
             bus = await get_bus()
-            cmd = commands.GetAccountIdByAuthToken(auth_token=auth_token)
-            account_id = await bus.handle(cmd)
-            if account_id is None:
+            cmd = commands.GetAccountNameByAuthToken(auth_token=auth_token)
+            account_name = await bus.handle(cmd)
+            if account_name is None:
                 raise exceptions.AuthTokenFail
 
-            return await f(request, *args, _account_id=account_id, **kwargs)
+            return await f(
+                request, *args, _account_name=account_name, **kwargs
+            )
 
         return inner
 
@@ -57,7 +59,9 @@ def validate_path_parameters(model: Type[BaseModel]):
             except ValidationError:
                 raise exceptions.ParameterPathWrong
 
-            return await f(request, *args, path_parameters=dict(params), **kwargs)
+            return await f(
+                request, *args, path_parameters=dict(params), **kwargs
+            )
 
         return inner
 

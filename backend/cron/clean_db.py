@@ -12,11 +12,15 @@ from backend.api.dependables import get_bus
 from backend.domain import commands
 from backend.service_layer.message_bus import MessageBus
 
+from backend.cron.init import cleanup, startup
+
 logger = logging.getLogger()
+
 
 async def clean_links(bus: MessageBus):
     cmd = commands.DeleteExpiredLinks()
     await bus.handle(cmd)
+
 
 async def clean_broker_messages(bus: MessageBus):
     cmd = commands.DeleteExecutedBrokerMessages()
@@ -24,9 +28,13 @@ async def clean_broker_messages(bus: MessageBus):
 
 
 async def main():
+    await startup()
+
     bus = await get_bus()
     await clean_links(bus)
     await clean_broker_messages(bus)
+
+    await cleanup()
 
 
 if __name__ == "__main__":
