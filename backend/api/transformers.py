@@ -20,13 +20,15 @@ def transform_exception(err: Exception) -> web.Response:
 
 
 async def transform_json_response(
-    r: Response, status: int = 200
+    r: Response | list[Response], status: int = 200
 ) -> web.Response:
     response = web.Response(
         headers={
             "Content-Type": "application/json; charset=utf-8",
         },
-        body=r.model_dump_json(),
+        body=f"[{','.join([x.model_dump_json() for x in r])}]"
+        if type(r) is list
+        else r.model_dump_json(),
         status=status,
     )
     return response

@@ -50,7 +50,17 @@ class CreatedMixin(BaseModel):
 class Account(AbstractModel):
     name: str
     auth_token: UUID4
+    actual_size: int
+    total_size: int
     is_active: bool
+
+    actual_size_greater_than_zero_or_equal = field_validator("actual_size")(
+        greater_than_zero_or_equal
+    )
+
+    total_size_greater_than_zero_or_equal = field_validator("total_size")(
+        greater_than_zero_or_equal
+    )
 
 
 class File(AbstractModel, IdMixin, CreatedMixin):

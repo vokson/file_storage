@@ -82,6 +82,15 @@ class DatabaseFileRepository(AbstractFileRepository):
                     WHERE id = $1 AND has_deleted = TRUE AND has_erased = FALSE;
                     """
 
+    GET_ACTUAL_SIZE_BY_ACCOUNT_QUERY = f"""
+                    SELECT account_name, SUM(size) as size
+                    FROM {settings.files_table}
+                    WHERE 
+                        has_stored = TRUE AND
+                        has_deleted = FALSE
+                    GROUP BY account_name;
+                    """
+
     def __init__(self, storage: AbstractFileStorage, conn):
         super().__init__(storage)
         self._conn = conn
@@ -181,6 +190,17 @@ class DatabaseFileRepository(AbstractFileRepository):
         success = await self._storage.erase(model.stored_id)
         if success:
             await self._conn.execute(self.ERASE_QUERY, file_id, tz_now())
+
+    async def get_actual_account_sizes(self) -> list[tuple[str, int]]:
+        logger.info(f"Get actual account sizes.")
+        rows = await self._conn.fetch(self.GET_ACTUAL_SIZE_BY_ACCOUNT_QUERY)
+        return [
+            (
+                x["account_name"],
+                x["size"],
+            )
+            for x in rows
+        ]
 
 
 async def get_db_file_repository(

@@ -147,7 +147,10 @@ async def clone(
 ):
     from backend.api.routes import make_file_url
 
+    session = None
+
     async with uow:
+        session = uow.session
         #  Проверяем существует ли данный файл
         try:
             await uow.file_repository.get(cmd.file_id)
@@ -170,65 +173,63 @@ async def clone(
     #  чтобы получить ссылку для скачивания
 
     headers = {"Authorization": str(account.auth_token)}
-    async with aiohttp.ClientSession() as session:
-        download_link = None
+    download_link = None
 
-        tasks = set()
-        for host in settings.other_servers:
+    tasks = set()
+    for host in settings.other_servers:
 
-            async def get_download_link(
-                file_id: UUID, host: str
-            ) -> str | None:
-                try:
-                    response = await session.get(
-                        make_file_url(file_id, host=host), headers=headers
-                    )
-                    if response.status == 200:
-                        json_data = await response.json()
+        async def get_download_link(
+            file_id: UUID, host: str
+        ) -> str | None:
+            try:
+                response = await session.get(
+                    make_file_url(file_id, host=host), headers=headers
+                )
+                if response.status == 200:
+                    json_data = await response.json()
 
-                        nonlocal download_link
-                        download_link = json_data["link"]
+                    nonlocal download_link
+                    download_link = json_data["link"]
 
-                        raise exceptions.Ok
+                    raise exceptions.Ok
 
-                except Exception as e:
-                    #   Ловим все исключения. При остановке остальные таски
-                    #   получат Server Disconnected exception
-                    if isinstance(e, exceptions.Ok):
-                        #   Делаем проброс, чтобы asyncio.wait остановился
-                        raise e
+            except Exception as e:
+                #   Ловим все исключения. При остановке остальные таски
+                #   получат Server Disconnected exception
+                if isinstance(e, exceptions.Ok):
+                    #   Делаем проброс, чтобы asyncio.wait остановился
+                    raise e
 
-            tasks.add(get_download_link(cmd.file_id, host))
+        tasks.add(get_download_link(cmd.file_id, host))
 
-        done, pending = await asyncio.wait(
-            tasks, timeout=2.0, return_when=asyncio.FIRST_EXCEPTION
+    done, pending = await asyncio.wait(
+        tasks, timeout=2.0, return_when=asyncio.FIRST_EXCEPTION
+    )
+
+    if download_link is None:
+        raise exceptions.NoConnectionToServer
+
+    logger.debug(f"File to cloned using download link: {download_link}")
+
+    #  Скачиваем файл, используя полученную ссылку
+
+    response = await session.get(download_link)
+    assert response.status == 200
+
+    async with uow:
+        model = await uow.file_repository.add(
+            cmd.account_name, cmd.file_id
         )
 
-        if download_link is None:
-            raise exceptions.NoConnectionToServer
+        size = await uow.file_repository.store(
+            model.id, response.content.iter_chunked
+        )
 
-        logger.debug(f"File to cloned using download link: {download_link}")
+        if size != cmd.size:
+            raise exceptions.FileSizeError
 
-        #  Скачиваем файл, используя полученную ссылку
-        async with uow:
-            model = await uow.file_repository.add(
-                cmd.account_name, cmd.file_id
-            )
+        model = await uow.file_repository.mark_as_stored(
+            model.id, cmd.name, size
+        )
 
-            response = await session.get(download_link)
-            assert response.status == 200
-
-            size = await uow.file_repository.store(
-                model.id, response.content.iter_chunked
-            )
-
-            if size != cmd.size:
-                raise exceptions.FileSizeError
-
-            model = await uow.file_repository.mark_as_stored(
-                model.id, cmd.name, size
-            )
-
-            await uow.commit()
-
-        await session.close()
+        await uow.commit()

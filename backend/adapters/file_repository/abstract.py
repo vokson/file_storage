@@ -63,3 +63,7 @@ class AbstractFileRepository(ABC):
     @abstractmethod
     async def erase(self, file_id: UUID):
         pass
+
+    @abstractmethod
+    async def get_actual_account_sizes(self) -> list[tuple[str, int]]:
+        pass

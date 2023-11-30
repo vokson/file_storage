@@ -13,13 +13,21 @@ class Command:
     pass
 
 
-# ***** FILE *****
+# ***** ACCOUNT *****
 
+class GetAccounts(Command):
+    pass
 
 @pydantic_dataclass
 class GetAccountNameByAuthToken(Command):
     auth_token: UUID4
 
+
+class UpdateAccountsActualSizes(Command):
+    pass
+
+
+# ***** FILE *****
 
 @dataclass
 class GetFile(Command):
@@ -76,7 +84,7 @@ class EraseDeletedFiles(Command):
     storage_time_in_sec: int
 
 
-# ***** FILE *****
+# ***** LINK *****
 
 
 class DeleteExpiredLinks(Command):

@@ -4,9 +4,10 @@ from aiohttp import web
 
 from backend.core.config import settings
 
-from .handlers import files
+from .handlers import files, accounts
 
 ROUTES = [
+    web.get("/accounts/", accounts.get),
     web.post("/files/", files.post),
     web.get("/files/{file_id}/", files.get),
     web.delete("/files/{file_id}/", files.delete),

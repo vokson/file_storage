@@ -14,11 +14,12 @@ from backend.core.config import settings
 from backend.domain.models import File
 from backend.tests.src.repository.mixins import AccountMixin
 from backend.tests.src.storage.mixins import FileOperationMixin
+from backend.tests.src.integration.mixins import CleanDatabaseMixin
 
 logger = logging.getLogger()
 
 
-class TestFileEndpoints(FileOperationMixin, AccountMixin):
+class TestFileEndpoints(CleanDatabaseMixin, FileOperationMixin, AccountMixin):
     DEFAULT_FILENAME = "FILENAME"
     DEFAULT_FILESIZE = 100
 
@@ -47,17 +48,6 @@ class TestFileEndpoints(FileOperationMixin, AccountMixin):
 
         self._base_url = settings.server
         self._headers = {"Authorization": str(self._auth_token)}
-
-    async def clean_db(self):
-        async with self._conn.transaction():
-            await self._conn.execute(
-                """
-                                TRUNCATE links CASCADE;
-                                TRUNCATE files CASCADE;
-                                TRUNCATE accounts CASCADE;
-                                TRUNCATE broker_messages CASCADE;
-                               """
-            )
 
     @pytest.mark.asyncio
     async def test_get(self, session, file_repository):

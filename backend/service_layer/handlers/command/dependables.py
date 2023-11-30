@@ -4,7 +4,9 @@ from backend.service_layer.handlers.command import (accounts, broker, files,
 
 COMMAND_HANDLERS = {
     # ACCOUNT
+    commands.GetAccounts: accounts.get_accounts,
     commands.GetAccountNameByAuthToken: accounts.get_account_name_by_auth_token,
+    commands.UpdateAccountsActualSizes: accounts.update_accounts_actual_sizes,
     # FILE
     commands.GetFile: files.get,
     commands.GetStoredAndNotDeletedFiles: files.get_stored_and_not_deleted,

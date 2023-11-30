@@ -25,6 +25,8 @@ class AccountMixin:
         [
             ("name", "TEST ACCOUNT"),
             ("auth_token", uuid4()),
+            ("actual_size", 0),
+            ("total_size", 0),
             ("is_active", True),
         ]
     )
@@ -34,17 +36,32 @@ class AccountMixin:
                         (
                             name,
                             auth_token,
+                            actual_size,
+                            total_size,
                             is_active
                         )
                     VALUES
-                        ($1, $2, $3);
+                        ($1, $2, $3, $4, $5);
                     """
 
     @classmethod
     async def _create_account(
-        cls, conn, name: str, auth_token: UUID, is_active: bool
+        cls,
+        conn,
+        name: str,
+        auth_token: UUID,
+        actual_size: int,
+        total_size: int,
+        is_active: bool,
     ) -> tuple[UUID, UUID]:
-        await conn.execute(cls.ACCOUNT_ADD_QUERY, name, auth_token, is_active)
+        await conn.execute(
+            cls.ACCOUNT_ADD_QUERY,
+            name,
+            auth_token,
+            actual_size,
+            total_size,
+            is_active,
+        )
         return name, auth_token
 
     @classmethod
