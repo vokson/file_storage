@@ -222,7 +222,7 @@ async def clone(
     assert response.status == 200
 
     async with uow:
-        model = await uow.file_repository.add(cmd.account_name, cmd.file_id)
+        model = await uow.file_repository.add(cmd.account_name, cmd.tag, cmd.file_id)
 
         size = await uow.file_repository.store(
             model.id, response.content.iter_chunked
