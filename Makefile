@@ -10,3 +10,9 @@ test:
 	sudo docker compose -f ./backend/tests/docker-compose.yml  --env-file=./.env up --build
 test_down:
 	sudo docker compose -f ./backend/tests/docker-compose.yml  --env-file=./.env down -v
+
+#  Запуск тестов локально
+#  sudo docker compose -f ./backend/tests/docker-compose.yml  --env-file=./.env up --build -d db
+#  python backend/migrations/migrate.py
+#  python backend/server.py
+#  pytest

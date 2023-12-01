@@ -53,6 +53,7 @@ class Account(AbstractModel):
     actual_size: int
     total_size: int
     is_active: bool
+    tags: list[str]
 
     actual_size_greater_than_zero_or_equal = field_validator("actual_size")(
         greater_than_zero_or_equal
@@ -67,6 +68,7 @@ class File(AbstractModel, IdMixin, CreatedMixin):
     stored_id: UUID4
     name: str
     size: int
+    tag: str
     account_name: str
     has_stored: bool = False
     stored: datetime | None = None
@@ -85,6 +87,7 @@ class File(AbstractModel, IdMixin, CreatedMixin):
             "account_name": self.account_name,
             "name": self.name,
             "size": self.size,
+            "tag": self.tag,
             "stored": self.stored,
             "deleted": self.deleted,
         }

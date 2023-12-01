@@ -32,3 +32,7 @@ class AbstractAccountRepository(ABC):
         self, excluded_names: list[str], size: int = 0
     ):
         pass
+
+    @abstractmethod
+    async def verify_ready_to_add(self, account_name: str, tag: str):
+        pass

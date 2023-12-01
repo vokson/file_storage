@@ -46,6 +46,7 @@ class GetStoredAndNotDeletedFiles(Command):
 class AddFile(Command):
     account_name: str
     make_upload_url: Callable[[UUID], str]
+    tag: str
 
 
 @pydantic_dataclass
@@ -72,6 +73,7 @@ class CloneFile(Command):
     file_id: UUID
     name: str
     size: int
+    tag: str
 
 
 @pydantic_dataclass

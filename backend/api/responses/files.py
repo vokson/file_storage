@@ -15,6 +15,7 @@ class FileResponse(Response):
     id: UUID4
     name: str
     size: int
+    tag: str
     stored: datetime
 
 

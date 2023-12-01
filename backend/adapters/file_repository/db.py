@@ -50,10 +50,11 @@ class DatabaseFileRepository(AbstractFileRepository):
                             stored_id,
                             name,
                             size,
+                            tag,
                             created
                         )
                     VALUES
-                        ($1, $2, $3, $4, $5, $6);
+                        ($1, $2, $3, $4, $5, $6, $7);
                     """
 
     STORE_QUERY = f"""
@@ -134,7 +135,7 @@ class DatabaseFileRepository(AbstractFileRepository):
         return [self._convert_row_to_obj(x) for x in rows]
 
     async def add(
-        self, account_name: str, file_id: UUID | None = None
+        self, account_name: str, tag: str, file_id: UUID | None = None
     ) -> File:
         if file_id is None:
             file_id = uuid4()
@@ -145,7 +146,7 @@ class DatabaseFileRepository(AbstractFileRepository):
             f"id {file_id}, stored_id {stored_id}"
         )
         await self._conn.execute(
-            self.ADD_QUERY, account_name, file_id, stored_id, "", 0, tz_now()
+            self.ADD_QUERY, account_name, file_id, stored_id, "", 0, tag, tz_now()
         )
         return await self.get_not_stored(file_id)
 

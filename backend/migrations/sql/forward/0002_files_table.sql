@@ -6,6 +6,7 @@ CREATE TABLE files
     stored_id UUID NOT NULL,
     name TEXT NOT NULL,
     size BIGINT NOT NULL CHECK (size >= 0),
+    tag TEXT NOT NULL,
     created TIMESTAMPTZ NOT NULL,
     has_stored BOOLEAN NOT NULL DEFAULT FALSE,
     stored TIMESTAMPTZ,

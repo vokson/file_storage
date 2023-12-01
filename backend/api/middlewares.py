@@ -60,7 +60,7 @@ def validate_path_parameters(model: Type[BaseModel]):
                 raise exceptions.ParameterPathWrong
 
             return await f(
-                request, *args, path_parameters=dict(params), **kwargs
+                request, *args, _path_parameters=dict(params), **kwargs
             )
 
         return inner
@@ -68,26 +68,28 @@ def validate_path_parameters(model: Type[BaseModel]):
     return wrapper
 
 
-# def validate_json_body(model: Type[BaseModel]):
-#     def wrapper(f: Callable) -> Callable:
-#         @wraps(f)
-#         async def inner(request: web.Request, *args, **kwargs) -> Awaitable:
-#             if not request.has_body or not request.can_read_body:
-#                 raise exceptions.ParameterBodyWrong
+def validate_json_body(model: Type[BaseModel]):
+    def wrapper(f: Callable) -> Callable:
+        @wraps(f)
+        async def inner(request: web.Request, *args, **kwargs) -> Awaitable:
+            if not request.has_body or not request.can_read_body:
+                raise exceptions.ParameterBodyWrong
 
-#             if request.content_type != "application/json":
-#                 raise exceptions.RequestBodyNotJson
+            if request.content_type != "application/json":
+                raise exceptions.RequestBodyNotJson
 
-#             try:
-#                 model(**await request.json())
-#             except ValidationError:
-#                 raise exceptions.ParameterBodyWrong
+            try:
+                data = await request.json()
+                obj = model(**data)
+            except ValidationError as e:
+                logger.info(e)
+                raise exceptions.ParameterBodyWrong
 
-#             return await f(request, *args, **kwargs)
+            return await f(request, *args, _body=obj, **kwargs)
 
-#         return inner
+        return inner
 
-#     return wrapper
+    return wrapper
 
 
 def validate_file_body():

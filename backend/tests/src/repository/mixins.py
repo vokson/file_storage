@@ -26,8 +26,9 @@ class AccountMixin:
             ("name", "TEST ACCOUNT"),
             ("auth_token", uuid4()),
             ("actual_size", 0),
-            ("total_size", 0),
+            ("total_size", 1000),
             ("is_active", True),
+            ("tags", ["default_tag"]),
         ]
     )
 
@@ -38,10 +39,11 @@ class AccountMixin:
                             auth_token,
                             actual_size,
                             total_size,
-                            is_active
+                            is_active,
+                            tags
                         )
                     VALUES
-                        ($1, $2, $3, $4, $5);
+                        ($1, $2, $3, $4, $5, $6::jsonb);
                     """
 
     @classmethod
@@ -53,6 +55,7 @@ class AccountMixin:
         actual_size: int,
         total_size: int,
         is_active: bool,
+        tags: list[str],
     ) -> tuple[UUID, UUID]:
         await conn.execute(
             cls.ACCOUNT_ADD_QUERY,
@@ -61,6 +64,7 @@ class AccountMixin:
             actual_size,
             total_size,
             is_active,
+            tags,
         )
         return name, auth_token
 
@@ -78,6 +82,7 @@ class FileMixin:
             ("stored_id", uuid4()),
             ("name", "FILENAME"),
             ("size", 100),
+            ("tag", "default_tag"),
             ("created", tz_now()),
             ("has_stored", True),
             ("stored", tz_now()),
@@ -94,6 +99,7 @@ class FileMixin:
             ("stored_id", uuid4()),
             ("name", "FILENAME"),
             ("size", 100),
+            ("tag", "default_tag"),
             ("created", tz_now()),
             ("has_stored", False),
             ("stored", None),
@@ -110,6 +116,7 @@ class FileMixin:
             ("stored_id", uuid4()),
             ("name", "FILENAME"),
             ("size", 100),
+            ("tag", "default_tag"),
             ("created", tz_now()),
             ("has_stored", True),
             ("stored", tz_now()),
@@ -127,6 +134,7 @@ class FileMixin:
                 stored_id,
                 name,
                 size,
+                tag,
                 created,
                 has_stored,
                 stored,
@@ -137,7 +145,7 @@ class FileMixin:
                 account_name
             )
         VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
         """
 
     @classmethod
@@ -148,6 +156,7 @@ class FileMixin:
         stored_id: UUID,
         name: str,
         size: int,
+        tag: str,
         created: datetime,
         has_stored: bool,
         stored: datetime | None,
@@ -163,6 +172,7 @@ class FileMixin:
             stored_id,
             name,
             size,
+            tag,
             created,
             has_stored,
             stored,

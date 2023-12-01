@@ -29,6 +29,9 @@ class RequestBodyNotJson(ApiException):
     pass
 
 
+### SYNCRONIZATION
+
+
 class NoConnectionToServer(ApiException):
     pass
 
@@ -41,6 +44,14 @@ class FileSizeError(ApiException):
 
 
 class AccountNotFound(RepositoryException):
+    pass
+
+
+class TagNotFoundInAccount(RepositoryException):
+    pass
+
+
+class NoSpaceInAccount(RepositoryException):
     pass
 
 

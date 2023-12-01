@@ -17,3 +17,7 @@ class UploadRequestPath(DownloadRequestPath):
 
 class DeleteRequestPath(Request):
     file_id: UUID4
+
+
+class PostRequestBody(Request):
+    tag: str

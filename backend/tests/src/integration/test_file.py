@@ -1,4 +1,5 @@
 import io
+import json
 import logging
 from contextlib import nullcontext as no_exception
 from uuid import UUID, uuid4
@@ -7,8 +8,11 @@ import pytest
 import pytest_asyncio
 from aiohttp import FormData
 
-from backend.api.responses.files import (FileResponse, FileResponseWithLink,
-                                         NotStoredFileResponse)
+from backend.api.responses.files import (
+    FileResponse,
+    FileResponseWithLink,
+    NotStoredFileResponse,
+)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain.models import File
@@ -31,7 +35,7 @@ class TestFileEndpoints(CleanDatabaseMixin, FileOperationMixin, AccountMixin):
 
     async def _create_default_file(self, file_rep) -> File:
         async with self._conn.transaction():
-            model = await file_rep.add(self._account_name)
+            model = await file_rep.add(self._account_name, self._tag)
             return await file_rep.mark_as_stored(
                 model.id, self.DEFAULT_FILENAME, self.DEFAULT_FILESIZE
             )
@@ -48,6 +52,8 @@ class TestFileEndpoints(CleanDatabaseMixin, FileOperationMixin, AccountMixin):
 
         self._base_url = settings.server
         self._headers = {"Authorization": str(self._auth_token)}
+        self._tag = "default_tag"
+        self._tag_dict = {"tag": self._tag}
 
     @pytest.mark.asyncio
     async def test_get(self, session, file_repository):
@@ -104,7 +110,9 @@ class TestFileEndpoints(CleanDatabaseMixin, FileOperationMixin, AccountMixin):
     @pytest.mark.asyncio
     async def test_upload_and_download(self, session):
         #  TAKE UPLOAD URL
-        async with session.post(self._files_url(), headers=self._headers) as r:
+        async with session.post(
+            self._files_url(), headers=self._headers, json=self._tag_dict
+        ) as r:
             assert r.status == 200
             response_model = NotStoredFileResponse(**await r.json())
             upload_link = response_model.link
@@ -138,5 +146,35 @@ class TestFileEndpoints(CleanDatabaseMixin, FileOperationMixin, AccountMixin):
             f = io.BytesIO()
             f.write(await r.content.read(content_length))
             assert data == f.getvalue()
+
+        await self.clean_db()
+
+    @pytest.mark.asyncio
+    async def test_post_without_tag(self, session):
+        async with session.post(
+            self._files_url(), headers=self._headers,
+        ) as r:
+            assert r.status == 400
+
+        await self.clean_db()
+
+    @pytest.mark.asyncio
+    async def test_post_with_wrong_tag(self, session):
+        async with session.post(
+            self._files_url(), headers=self._headers, json={'tag': "wrong"}
+        ) as r:
+            assert r.status == 401
+
+        await self.clean_db()
+    @pytest.mark.asyncio
+
+    async def test_post_if_no_space(self, session, account_repository):
+        query = f"UPDATE {settings.accounts_table} SET total_size = 0 WHERE name = $1;"
+        await self._conn.execute(query, self._account_name)
+
+        async with session.post(
+            self._files_url(), headers=self._headers, json=self._tag_dict
+        ) as r:
+            assert r.status == 507
 
         await self.clean_db()

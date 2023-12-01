@@ -107,7 +107,7 @@ async def file_stored_handler(uow: AbstractUnitOfWork, data: dict):
     logger.debug("File stored broker message handler")
     uow.push_message(
         commands.CloneFile(
-            data["account_name"], data["id"], data["name"], data["size"]
+            data["account_name"], data["id"], data["name"], data["size"], data["tag"]
         )
     )
 

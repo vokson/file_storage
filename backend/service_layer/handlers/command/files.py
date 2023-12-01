@@ -6,8 +6,11 @@ from uuid import UUID
 import aiohttp
 
 from backend.api.responses.abstract import EmptyResponse
-from backend.api.responses.files import (FileResponse, FileResponseWithLink,
-                                         NotStoredFileResponse)
+from backend.api.responses.files import (
+    FileResponse,
+    FileResponseWithLink,
+    NotStoredFileResponse,
+)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain import commands, events, models
@@ -51,7 +54,10 @@ async def add(
     uow: AbstractUnitOfWork,
 ) -> NotStoredFileResponse:
     async with uow:
-        file_model = await uow.file_repository.add(cmd.account_name)
+        await uow.account_repository.verify_ready_to_add(
+            cmd.account_name, cmd.tag
+        )
+        file_model = await uow.file_repository.add(cmd.account_name, cmd.tag)
         link_model = await uow.link_repository.add_upload(
             file_model.id, settings.storage_time_for_links
         )
@@ -160,13 +166,14 @@ async def clone(
 
         #  Если нет, определяем нужен ли данный файл в данном хранилище
         try:
-            account = await uow.account_repository.get_by_name(
-                cmd.account_name
+            account = await uow.account_repository.verify_ready_to_add(
+                cmd.account_name, cmd.tag
             )
-        except exceptions.AccountNotFound:
-            return
-
-        if not account.is_active:
+        except (
+            exceptions.AccountNotFound,
+            exceptions.TagNotFoundInAccount,
+            exceptions.NoSpaceInAccount,
+        ):
             return
 
     #  Если нужен, обращаемся ко всем хранилищам,
@@ -178,9 +185,7 @@ async def clone(
     tasks = set()
     for host in settings.other_servers:
 
-        async def get_download_link(
-            file_id: UUID, host: str
-        ) -> str | None:
+        async def get_download_link(file_id: UUID, host: str) -> str | None:
             try:
                 response = await session.get(
                     make_file_url(file_id, host=host), headers=headers
@@ -217,9 +222,7 @@ async def clone(
     assert response.status == 200
 
     async with uow:
-        model = await uow.file_repository.add(
-            cmd.account_name, cmd.file_id
-        )
+        model = await uow.file_repository.add(cmd.account_name, cmd.file_id)
 
         size = await uow.file_repository.store(
             model.id, response.content.iter_chunked

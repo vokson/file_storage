@@ -24,6 +24,7 @@ class TestFileRepository(
     async def setup(self, rollback_pg):
         self._conn = rollback_pg
         self._account_name, _ = await self._create_default_account(rollback_pg)
+        self._tag = 'default_tag'
         self._file_id = await self._create_default_file(
             rollback_pg, self._account_name
         )
@@ -80,7 +81,7 @@ class TestFileRepository(
                 AND has_deleted = FALSE AND deleted IS NULL
                 AND has_erased = FALSE AND erased IS NULL
                 """
-        model = await rollback_file_repository.add(self._account_name)
+        model = await rollback_file_repository.add(self._account_name, self._tag)
         row = await self._conn.fetchrow(
             query, self._account_name, model.id, name, size
         )
@@ -109,7 +110,7 @@ class TestFileRepository(
                 AND has_deleted = FALSE AND deleted IS NULL
                 AND has_erased = FALSE AND erased IS NULL
                 """
-        model = await rollback_file_repository.add(self._account_name)
+        model = await rollback_file_repository.add(self._account_name, self._tag)
         model = await rollback_file_repository.mark_as_stored(
             model.id, name, size
         )
@@ -138,7 +139,7 @@ class TestFileRepository(
                 AND has_deleted = TRUE AND deleted IS NOT NULL
                 AND has_erased = FALSE AND erased IS NULL
                 """
-        model = await rollback_file_repository.add(self._account_name)
+        model = await rollback_file_repository.add(self._account_name, self._tag)
         model = await rollback_file_repository.mark_as_stored(
             model.id, name, size
         )
@@ -159,7 +160,7 @@ class TestFileRepository(
                 AND has_deleted = TRUE AND deleted IS NOT NULL
                 AND has_erased = TRUE AND erased IS NOT NULL
                 """
-        model = await rollback_file_repository.add(self._account_name)
+        model = await rollback_file_repository.add(self._account_name, self._tag)
         path = file_storage.generate_path(model.stored_id)
 
         size = await rollback_file_repository.store(
@@ -183,7 +184,7 @@ class TestFileRepository(
         name = "TEST NAME"
         data = b"1234567890"
 
-        model = await rollback_file_repository.add(self._account_name)
+        model = await rollback_file_repository.add(self._account_name, self._tag)
         path = file_storage.generate_path(model.stored_id)
 
         size = await rollback_file_repository.store(

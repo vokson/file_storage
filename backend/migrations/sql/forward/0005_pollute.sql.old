@@ -1,0 +1,15 @@
+INSERT INTO accounts (
+	name,
+	auth_token,
+	actual_size,
+	total_size,
+	is_active,
+	tags
+) VALUES (
+	'DOCUMENTS',
+	'8d57feb6-a010-478b-b596-b9d91ea353d4'::uuid,
+	0,
+	1073741824,
+	TRUE,
+	'["block-01"]'::jsonb
+)

@@ -6,3 +6,4 @@ class AccountResponse(Response):
     actual_size: int
     total_size: int
     is_active: bool
+    tags: list[str]
