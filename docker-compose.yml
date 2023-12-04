@@ -1,5 +1,14 @@
 version: '3.8'
 
+networks:
+  nw:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.1
+
 volumes:
   db_data: null
   file_storage:
@@ -20,6 +29,8 @@ services:
       - POSTGRES_DB=${DB__DBNAME}
     ports:
       - "${DB__PORT}:${DB__PORT}"
+    networks:
+      - nw
     command: -p ${DB__PORT}
 
   nginx:
@@ -33,6 +44,8 @@ services:
     ports:
       - "4660:443"
       - "4661:80"
+    networks:
+      - nw
     restart: always
     logging:
       driver: "json-file"
@@ -53,6 +66,8 @@ services:
       - ./.env
     volumes:
       - file_storage:/storage
+    networks:
+      - nw
     restart: always
     logging:
       driver: "json-file"
@@ -70,6 +85,8 @@ services:
       - db
     env_file:
       - ./.env
+    networks:
+      - nw
     restart: always
     logging:
       driver: "json-file"
@@ -89,6 +106,8 @@ services:
     restart: always
     volumes:
       - file_storage:/storage
+    networks:
+      - nw
     logging:
       driver: "json-file"
       options:

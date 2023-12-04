@@ -204,6 +204,8 @@ async def clone(
                 if isinstance(e, exceptions.Ok):
                     #   Делаем проброс, чтобы asyncio.wait остановился
                     raise e
+                else:
+                    logger.error(e)
 
         tasks.add(get_download_link(cmd.file_id, host))
 
@@ -214,7 +216,7 @@ async def clone(
     if download_link is None:
         raise exceptions.NoConnectionToServer
 
-    logger.debug(f"File to cloned using download link: {download_link}")
+    logger.info(f"File to cloned using download link: {download_link}")
 
     #  Скачиваем файл, используя полученную ссылку
 
