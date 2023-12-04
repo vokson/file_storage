@@ -1,14 +1,5 @@
 version: '3.8'
 
-networks:
-  nw:
-    driver: bridge
-    ipam:
-      # driver: default
-      config:
-        - subnet: 192.168.0.0/24
-          gateway: 192.168.0.1
-
 volumes:
   db_data: null
   file_storage:
@@ -29,8 +20,6 @@ services:
       - POSTGRES_DB=${DB__DBNAME}
     ports:
       - "${DB__PORT}:${DB__PORT}"
-    networks:
-      - nw
     command: -p ${DB__PORT}
 
   nginx:
@@ -46,8 +35,6 @@ services:
     ports:
       - "4660:443"
       - "4661:80"
-    networks:
-      - nw
     restart: always
     logging:
       driver: "json-file"
@@ -71,8 +58,6 @@ services:
       - ./cert/device.crt:/usr/local/share/ca-certificates/device.crt:ro
       - ./cert/intermediate.crt:/usr/local/share/ca-certificates/intermediate.crt:ro
       - ./cert/root.crt:/usr/local/share/ca-certificates/root.crt:ro
-    networks:
-      - nw
     restart: always
     logging:
       driver: "json-file"
@@ -90,8 +75,6 @@ services:
       - db
     env_file:
       - ./.env
-    networks:
-      - nw
     restart: always
     logging:
       driver: "json-file"
@@ -114,8 +97,6 @@ services:
       - ./cert/device.crt:/usr/local/share/ca-certificates/device.crt:ro
       - ./cert/intermediate.crt:/usr/local/share/ca-certificates/intermediate.crt:ro
       - ./cert/root.crt:/usr/local/share/ca-certificates/root.crt:ro
-    networks:
-      - nw
     logging:
       driver: "json-file"
       options:
