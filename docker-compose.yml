@@ -32,6 +32,7 @@ services:
       - ./cert/device.crt:/cert/device.crt:ro
     ports:
       - "4660:443"
+      - "4661:80"
     restart: always
     logging:
       driver: "json-file"
