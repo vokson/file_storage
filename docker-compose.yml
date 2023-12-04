@@ -41,6 +41,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./cert/device.key:/cert/device.key:ro
       - ./cert/device.crt:/cert/device.crt:ro
+      - ./cert/intermediate.crt:/cert/intermediate.crt:ro
+      - ./cert/root.crt:/cert/root.crt:ro
     ports:
       - "4660:443"
       - "4661:80"
@@ -66,6 +68,9 @@ services:
       - ./.env
     volumes:
       - file_storage:/storage
+      - ./cert/device.crt:/usr/local/share/ca-certificates/device.crt:ro
+      - ./cert/intermediate.crt:/usr/local/share/ca-certificates/intermediate.crt:ro
+      - ./cert/root.crt:/usr/local/share/ca-certificates/root.crt:ro
     networks:
       - nw
     restart: always
@@ -75,7 +80,7 @@ services:
         max-size: "200k"
         max-file: "10"
 
-    command: ["python", "/backend/server.py"]
+    command: ["/bin/bash", "-c", "update-ca-certificates && python /backend/server.py"]
 
   broker:
     build:
@@ -106,6 +111,9 @@ services:
     restart: always
     volumes:
       - file_storage:/storage
+      - ./cert/device.crt:/usr/local/share/ca-certificates/device.crt:ro
+      - ./cert/intermediate.crt:/usr/local/share/ca-certificates/intermediate.crt:ro
+      - ./cert/root.crt:/usr/local/share/ca-certificates/root.crt:ro
     networks:
       - nw
     logging:
@@ -117,4 +125,4 @@ services:
     #  Данный скрипт копирует переменные окружения в файл /etc/security/pam_env.conf
     #  чтобы CRON мог иметь такие же переменные окружения
     entrypoint: ["/backend/cron/docker-entrypoint.sh"]
-    command: ["/bin/bash", "-c", "service cron start && python /backend/worker.py"]
+    command: ["/bin/bash", "-c", "service cron start && update-ca-certificates && python /backend/worker.py"]
