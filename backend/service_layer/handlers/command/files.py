@@ -236,3 +236,5 @@ async def clone(
         )
 
         await uow.commit()
+
+    uow.push_message(events.FileStored(model))

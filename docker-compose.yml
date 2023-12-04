@@ -28,6 +28,8 @@ services:
       - backend
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert/device.key:/cert/device.key:ro
+      - ./cert/device.crt:/cert/device.crt:ro
     ports:
       - "80:80"
     restart: always
