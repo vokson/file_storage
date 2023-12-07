@@ -11,8 +11,11 @@ ROUTES = [
     web.post("/files/", files.post),
     web.get("/files/{file_id}/", files.get),
     web.delete("/files/{file_id}/", files.delete),
-    web.get("/download/{link_id}/", files.download),
-    web.post("/upload/{link_id}/", files.upload),
+]
+
+CORS_ROUTES = [
+    ("GET", "/download/{link_id}/", files.download),
+    ("POST", "/upload/{link_id}/", files.upload),
 ]
 
 
