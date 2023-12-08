@@ -4,7 +4,7 @@ from aiohttp import web
 
 from backend.core.config import settings
 
-from .handlers import files, accounts
+from .handlers import accounts, files
 
 ROUTES = [
     web.get("/accounts/", accounts.get),

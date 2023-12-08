@@ -8,17 +8,14 @@ import pytest
 import pytest_asyncio
 from aiohttp import FormData
 
-from backend.api.responses.files import (
-    FileResponse,
-    FileResponseWithLink,
-    NotStoredFileResponse,
-)
+from backend.api.responses.files import (FileResponse, FileResponseWithLink,
+                                         NotStoredFileResponse)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain.models import File
+from backend.tests.src.integration.mixins import CleanDatabaseMixin
 from backend.tests.src.repository.mixins import AccountMixin
 from backend.tests.src.storage.mixins import FileOperationMixin
-from backend.tests.src.integration.mixins import CleanDatabaseMixin
 
 logger = logging.getLogger()
 
@@ -152,7 +149,8 @@ class TestFileEndpoints(CleanDatabaseMixin, FileOperationMixin, AccountMixin):
     @pytest.mark.asyncio
     async def test_post_without_tag(self, session):
         async with session.post(
-            self._files_url(), headers=self._headers,
+            self._files_url(),
+            headers=self._headers,
         ) as r:
             assert r.status == 400
 
@@ -161,13 +159,13 @@ class TestFileEndpoints(CleanDatabaseMixin, FileOperationMixin, AccountMixin):
     @pytest.mark.asyncio
     async def test_post_with_wrong_tag(self, session):
         async with session.post(
-            self._files_url(), headers=self._headers, json={'tag': "wrong"}
+            self._files_url(), headers=self._headers, json={"tag": "wrong"}
         ) as r:
             assert r.status == 401
 
         await self.clean_db()
-    @pytest.mark.asyncio
 
+    @pytest.mark.asyncio
     async def test_post_if_no_space(self, session, account_repository):
         query = f"UPDATE {settings.accounts_table} SET total_size = 0 WHERE name = $1;"
         await self._conn.execute(query, self._account_name)

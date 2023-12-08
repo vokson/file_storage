@@ -10,9 +10,8 @@ sys.path.append(BASE_DIR)
 
 from backend.api.dependables import get_bus
 from backend.core.config import settings
-from backend.domain import commands
-
 from backend.cron.init import cleanup, startup
+from backend.domain import commands
 
 logger = logging.getLogger()
 

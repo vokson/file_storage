@@ -6,7 +6,8 @@ from aiohttp import web
 from backend.api import middlewares
 from backend.api.dependables import get_bus
 from backend.api.requests.files import (DeleteRequestPath, DownloadRequestPath,
-                                        GetRequestPath, UploadRequestPath, PostRequestBody)
+                                        GetRequestPath, PostRequestBody,
+                                        UploadRequestPath)
 from backend.api.transformers import (transform_file_response,
                                       transform_json_response)
 from backend.domain import commands
@@ -37,7 +38,7 @@ async def get(
 async def post(
     request: web.Request,
     _account_name: str,
-    _body: PostRequestBody, 
+    _body: PostRequestBody,
     bus: MessageBus | None = None,
 ) -> web.Response:
     bus = bus or await get_bus()
@@ -46,7 +47,7 @@ async def post(
     cmd = commands.AddFile(
         account_name=_account_name,
         make_upload_url=make_upload_url,
-        tag=_body.tag
+        tag=_body.tag,
     )
     return await transform_json_response(await bus.handle(cmd))
 

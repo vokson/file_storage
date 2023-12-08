@@ -88,7 +88,9 @@ def get_args() -> tuple[bool, int]:
 async def forward(conn: Connection, migrations: set[str]):
     #  Анализируем записи в __migrations__ и файлы на диске
     regex = re.compile(r".*\.sql$", flags=re.IGNORECASE)
-    filenames = set([x for x in get_filenames(SQL_DIR_FORWARD) if regex.match(x)])
+    filenames = set(
+        [x for x in get_filenames(SQL_DIR_FORWARD) if regex.match(x)]
+    )
     not_applied_migrations = filenames - migrations
 
     #  Применяем миграции

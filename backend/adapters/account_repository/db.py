@@ -75,7 +75,9 @@ class DatabaseAccountRepository(AbstractAccountRepository):
             size,
         )
 
-    async def verify_ready_to_add(self, account_name: str, tag: str) -> Account:
+    async def verify_ready_to_add(
+        self, account_name: str, tag: str
+    ) -> Account:
         logger.debug(f"Verify tag {tag} for account {account_name}")
         account_model: Account = await self.get_by_name(account_name)
 
@@ -89,7 +91,6 @@ class DatabaseAccountRepository(AbstractAccountRepository):
             raise exceptions.NoSpaceInAccount
 
         return account_model
-        
 
 
 async def get_db_account_repository(conn) -> AbstractAccountRepository:

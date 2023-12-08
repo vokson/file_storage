@@ -146,7 +146,14 @@ class DatabaseFileRepository(AbstractFileRepository):
             f"id {file_id}, stored_id {stored_id}"
         )
         await self._conn.execute(
-            self.ADD_QUERY, account_name, file_id, stored_id, "", 0, tag, tz_now()
+            self.ADD_QUERY,
+            account_name,
+            file_id,
+            stored_id,
+            "",
+            0,
+            tag,
+            tz_now(),
         )
         return await self.get_not_stored(file_id)
 

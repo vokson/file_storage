@@ -6,11 +6,8 @@ from uuid import UUID
 import aiohttp
 
 from backend.api.responses.abstract import EmptyResponse
-from backend.api.responses.files import (
-    FileResponse,
-    FileResponseWithLink,
-    NotStoredFileResponse,
-)
+from backend.api.responses.files import (FileResponse, FileResponseWithLink,
+                                         NotStoredFileResponse)
 from backend.core import exceptions
 from backend.core.config import settings
 from backend.domain import commands, events, models
@@ -224,7 +221,9 @@ async def clone(
     assert response.status == 200
 
     async with uow:
-        model = await uow.file_repository.add(cmd.account_name, cmd.tag, cmd.file_id)
+        model = await uow.file_repository.add(
+            cmd.account_name, cmd.tag, cmd.file_id
+        )
 
         size = await uow.file_repository.store(
             model.id, response.content.iter_chunked

@@ -29,7 +29,7 @@ class LocalFileStorage(AbstractFileStorage):
 
         if not os.path.isfile(path):
             raise exceptions.FileNotFound
-        
+
         async with aopen(path, "rb") as f:
             while True:
                 chunk = await f.read(CHUNK_SIZE)

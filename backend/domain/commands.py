@@ -15,8 +15,10 @@ class Command:
 
 # ***** ACCOUNT *****
 
+
 class GetAccounts(Command):
     pass
+
 
 @pydantic_dataclass
 class GetAccountNameByAuthToken(Command):
@@ -28,6 +30,7 @@ class UpdateAccountsActualSizes(Command):
 
 
 # ***** FILE *****
+
 
 @dataclass
 class GetFile(Command):

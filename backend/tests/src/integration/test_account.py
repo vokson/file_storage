@@ -6,8 +6,8 @@ import pytest_asyncio
 
 from backend.api.responses.accounts import AccountResponse
 from backend.core.config import settings
-from backend.tests.src.repository.mixins import AccountMixin
 from backend.tests.src.integration.mixins import CleanDatabaseMixin
+from backend.tests.src.repository.mixins import AccountMixin
 
 logger = logging.getLogger()
 

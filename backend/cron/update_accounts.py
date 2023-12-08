@@ -9,10 +9,9 @@ BASE_DIR = os.path.dirname(
 sys.path.append(BASE_DIR)
 
 from backend.api.dependables import get_bus
+from backend.cron.init import cleanup, startup
 from backend.domain import commands
 from backend.service_layer.message_bus import MessageBus
-
-from backend.cron.init import cleanup, startup
 
 logger = logging.getLogger()
 
