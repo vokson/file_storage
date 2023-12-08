@@ -132,7 +132,7 @@ class RabbitPublisher(AbstractRabbitExchangeConnector):
         exchange,
         exchange_type="topic",
         exchange_durability=True,
-        delay_calculator=DelayCalculator(limit=30),
+        delay_calculator=DelayCalculator(limit=1),
     ):
         super().__init__(
             ampq_url,
@@ -217,7 +217,7 @@ class RabbitConsumer(AbstractRabbitExchangeConnector):
         exchange_type="topic",
         exchange_durability=True,
         queue_durability=True,
-        delay_calculator=DelayCalculator(limit=30),
+        delay_calculator=DelayCalculator(limit=1),
         cache=None,
     ):
         super().__init__(

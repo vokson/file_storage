@@ -12,7 +12,7 @@ class AbstractWorker(ABC):
     def __init__(
         self,
         bus: MessageBus,
-        delay_calculator=DelayCalculator(limit=5),
+        delay_calculator=DelayCalculator(limit=1),
         chunk_size: int = 1000,
     ):
         self._bus = bus
