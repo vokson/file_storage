@@ -1,4 +1,4 @@
-import json
+import urllib.parse
 import logging
 from typing import AsyncGenerator
 
@@ -44,7 +44,7 @@ async def transform_file_response(
         headers={
             "Content-Type": "application/octet-stream",
             "Content-Length": str(size),
-            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Disposition": f"attachment; filename*=utf-8''{urllib.parse.quote(filename)}",
         }
     )
 
