@@ -49,7 +49,7 @@ services:
       - db
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
     env_file:
       - ./.env
     volumes:
