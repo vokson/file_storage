@@ -57,6 +57,9 @@ def handler_for_new_broker_message(bus):
         message_id: str, app_id: str, routing_key: str, body: dict
     ) -> bool:
         try:
+            if app_id != settings.app_name:
+                return True
+
             cmd = commands.AddIncomingBrokerMessage(
                 UUID(message_id), app_id, routing_key, body
             )
@@ -93,7 +96,6 @@ async def main():
                 ]
             )
         ),
-        routing_key=f"{settings.app_name}.#"
     )
 
     await asyncio.gather(
