@@ -1,18 +1,18 @@
 import asyncio
 import logging
 import os
-import sys
-import asyncpg
-from pathlib import Path
 import shutil
+import sys
+from pathlib import Path
+
+import asyncpg
 
 BASE_DIR = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
 sys.path.append(BASE_DIR)
 
-from backend.core.config import settings, tz_now
-from backend.core.config import db_dsl
+from backend.core.config import db_dsl, settings, tz_now
 
 logger = logging.getLogger()
 
@@ -38,9 +38,13 @@ async def main():
     conn = await asyncpg.connect(**db_dsl)
 
     error_count = 0
-    with open(os.path.join(settings.storage_path, 'output.txt'), mode='r', encoding='utf-8') as f:
+    with open(
+        os.path.join(settings.storage_path, "output.txt"),
+        mode="r",
+        encoding="utf-8",
+    ) as f:
         for row in f:
-            arr: list[str] = row.strip().split('|')
+            arr: list[str] = row.strip().split("|")
             id, name, size = tuple(arr)
 
             try:
@@ -72,13 +76,11 @@ async def main():
                 logger.error(f"ERROR - File {src_path} has not been found")
                 error_count += 1
                 continue
-    
 
     await conn.close()
 
-    logger.info('******************************')
+    logger.info("******************************")
     logger.info(f"COUNT OF ERRORS: {error_count}")
-
 
 
 if __name__ == "__main__":

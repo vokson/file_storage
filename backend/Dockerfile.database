@@ -1,0 +1,14 @@
+FROM postgres:14.9-alpine
+
+WORKDIR /opt
+
+COPY . .
+
+#  Копируем cron файл в /etc/cron.d/
+#  Данный скрипт копирует переменные окружения в файл
+#  /etc/security/pam_env.conf чтобы CRON мог иметь
+#  такие же переменные окружения
+#  Делаем скрипт исполняемым
+RUN cp /opt/cron/db_backup.sh /etc/periodic/15min/db_backup \
+    && chmod a+x /etc/periodic/15min/db_backup \
+    # && chmod +x /opt/cron/docker-entrypoint.sh

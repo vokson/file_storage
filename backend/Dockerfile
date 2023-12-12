@@ -25,5 +25,5 @@ COPY . .
 #  /etc/security/pam_env.conf чтобы CRON мог иметь
 #  такие же переменные окружения
 #  Делаем скрипт исполняемым
-RUN cp /backend/cron/cron_tasks /etc/cron.d/cron_tasks \
+RUN cp /backend/cron/backend_cron_tasks /etc/cron.d/backend_cron_tasks \
     && chmod +x /backend/cron/docker-entrypoint.sh
