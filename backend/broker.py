@@ -93,6 +93,7 @@ async def main():
                 ]
             )
         ),
+        routing_key=f"{settings.app_name}.#"
     )
 
     await asyncio.gather(
