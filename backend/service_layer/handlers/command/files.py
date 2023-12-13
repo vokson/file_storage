@@ -104,13 +104,19 @@ async def delete(
     cmd: commands.DeleteFile,
     uow: AbstractUnitOfWork,
 ) -> EmptyResponse:
-    async with uow:
-        await uow.file_repository.get(cmd.file_id)
-        model = await uow.file_repository.delete(cmd.account_name, cmd.file_id)
-        await uow.link_repository.delete_by_file_id(cmd.file_id)
-        await uow.commit()
+    try:
+        async with uow:
+            await uow.file_repository.get(cmd.file_id)
+            model = await uow.file_repository.delete(cmd.account_name, cmd.file_id)
+            await uow.link_repository.delete_by_file_id(cmd.file_id)
+            await uow.commit()
 
-    uow.push_message(events.FileDeleted(model))
+        uow.push_message(events.FileDeleted(model))
+
+    except exceptions.FileNotFound:
+        #  Возможно файл уже был удален
+        pass
+
     return EmptyResponse()
 
 
