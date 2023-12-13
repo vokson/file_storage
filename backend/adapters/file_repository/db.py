@@ -88,7 +88,7 @@ class DatabaseFileRepository(AbstractFileRepository):
                     FROM {settings.files_table}
                     WHERE 
                         has_stored = TRUE AND
-                        has_deleted = FALSE
+                        has_erased = FALSE
                     GROUP BY account_name;
                     """
 
