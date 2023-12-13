@@ -18,12 +18,9 @@ services:
     build:
         context: ./backend
         dockerfile: ./Dockerfile.database
-    # image: postgres:14.9-alpine
     volumes:
       - db_backups:/backups/
       - db_data:/var/lib/postgresql/data/
-      # - ./backend/cron/docker-entrypoint.sh:/opt/docker-entrypoint.sh:ro
-      # - ./backend/cron/db_backup.sh:/etc/periodic/15min/db_backup
     restart: always
     environment:
       - POSTGRES_USER=${DB__USER}
@@ -33,13 +30,6 @@ services:
       - "${DB__PORT}:${DB__PORT}"
     env_file:
       - ./.env
-
-    #  Данный скрипт копирует переменные окружения в файл /etc/security/pam_env.conf
-    #  чтобы CRON мог иметь такие же переменные окружения
-    # entrypoint: ["/bin/bash", "-c", "chmod +x /opt/docker-entrypoint.sh && /opt/docker-entrypoint.sh"]
-    # entrypoint: ["/opt/cron/docker-entrypoint.sh"]
-
-    command: -p ${DB__PORT}
 
   nginx:
     image: nginx:1.25
