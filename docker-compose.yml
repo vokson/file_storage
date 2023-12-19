@@ -32,7 +32,7 @@ services:
       - ./.env
 
   nginx:
-    image: nginx:1.25
+    image: nginxinc/amplify-agent:1.8.1
     depends_on:
       - backend
     volumes:
@@ -43,6 +43,9 @@ services:
       - ./cert/root.crt:/cert/root.crt:ro
     ports:
       - "4660:443"
+    environment:
+      - API_KEY=${NGINX_AMPLIFY_API_KEY}
+      - AMPLIFY_IMAGENAME=${NGINX_AMPLIFY_NAME}
     restart: always
     logging:
       driver: "json-file"
