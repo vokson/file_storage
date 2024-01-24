@@ -1,0 +1,280 @@
+openapi: 3.1.0
+info:
+  title: File Storage
+  description: Коды ответов с ошибками описаны только в первом запросе
+  version: "1.0"
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://10.95.27.161:4660
+  - url: https://10.95.11.230:4660
+tags:
+  - name: file
+    description: Endpoints for files
+  - name: account
+    description: Endpoints for accounts
+  - name: link
+    description: Endpoints for links
+paths:
+  /accounts:
+    get:
+      tags:
+        - account
+      summary: Список аккаунтов
+      description: Получение списка аккаунтов
+      operationId: getAccounts
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseAccountMany'
+        '400':
+          description: Wrong request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response400'
+        '401':
+          description: Not Authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        '404':
+          description: File Storage Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response404'
+        '507':
+          description: No available space
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response507'
+      security:
+        - api_key: []
+
+  /files:
+    post:
+      tags:
+        - file
+      summary: Загрузка файла
+      description: Запрос на предоставление новой ссылки на загрузку файла
+      operationId: addFile
+      requestBody:
+        description: Получение новой ссылки на загрузку
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestUploadLink'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseUploadLink'
+      security:
+        - api_key: []
+
+  /files/{file_id}:
+    get:
+      tags:
+        - file
+      summary: Скачивание файла
+      description: Запрос на предоставление новой ссылки на скачивание файла
+      operationId: getFile
+      parameters:
+        - name: file_id
+          in: path
+          description: ID of file
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDownloadLink'
+      security:
+        - api_key: []
+
+    delete:
+      tags:
+        - file
+      summary: Удаление файла
+      description: Запрос на предоставление удаление файла
+      operationId: deleteFile
+      parameters:
+        - name: file_id
+          in: path
+          description: ID of file
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Successful operation
+          content:
+            text/plain:
+              schema:
+                const: ""
+      security:
+        - api_key: []
+
+  /download/{link_id}:
+    get:
+      tags:
+        - link
+      summary: Скачивание файла
+      description: Скачивание файла
+      operationId: downloadFile
+      parameters:
+        - name: link_id
+          in: path
+          description: ID of link
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/octet-stream: {}
+      security:
+        - api_key: []
+
+  /upload/{link_id}:  
+    post:
+      tags:
+        - link
+      summary: Загрузка файла
+      description: Загрузка файла
+      operationId: uploadFile
+      parameters:
+        - name: link_id
+          in: path
+          description: ID of link
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseFile'
+      security:
+        - api_key: []
+      
+
+    
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        name:
+          type: string
+        actual_size:
+          type: integer
+        total_size:
+          type: integer
+        is_active:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+    ResponseAccountMany:
+      type: array
+      items:
+        $ref: '#/components/schemas/Account'
+
+    ResponseFile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        size:
+          type: integer
+        tag:
+          type: string
+        stored:
+          type: string
+          format: date-time
+
+    ResponseDownloadLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        size:
+          type: integer
+        tag:
+          type: string
+        stored:
+          type: string
+          format: date-time
+        link:
+          type: string
+          examples: ["https://files-nm-01.giap.ru:4660/download/9965732f-f7bc-4f8c-b98e-a256b6915d37/"]
+    RequestUploadLink:
+      type: object
+      properties:
+        tag:
+          type: string
+          examples: ["block-01"]
+    ResponseUploadLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        created:
+          type: string
+          format: date-time
+        link:
+          type: string
+          examples: ["https://files-nm-01.giap.ru:4660/upload/9965732f-f7bc-4f8c-b98e-a256b6915d37/"]
+    Response400:
+      enum: ["Request.Body.NotJson", "Parameter.Body.Wrong", "Parameter.Path.Wrong"]
+    Response401:
+      enum: ["Auth.Token.Fail", "Account.Error.NotFound", "Account.Error.Tag"]
+    Response404:
+      enum: ["File.Error.NotFound", "Connection.Error.Reset"]
+    Response507:
+      enum: ["Account.Error.NoSpace"]
+    
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Authorization
+      in: header

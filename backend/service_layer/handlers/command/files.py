@@ -3,8 +3,6 @@ import logging
 from typing import AsyncGenerator, Awaitable
 from uuid import UUID
 
-import aiohttp
-
 from backend.api.responses.abstract import EmptyResponse
 from backend.api.responses.files import (FileResponse, FileResponseWithLink,
                                          NotStoredFileResponse)

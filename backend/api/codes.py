@@ -9,5 +9,5 @@ RESPONSE_CODES = {
     exceptions.FileNotFound: (404, "File.Error.NotFound"),
     exceptions.RequestBodyNotJson: (400, "Request.Body.NotJson"),
     exceptions.ParameterBodyWrong: (400, "Parameter.Body.Wrong"),
-    exceptions.ParameterPathWrong: (400, "Parameter.Path.Error"),
+    exceptions.ParameterPathWrong: (400, "Parameter.Path.Wrong"),
 }
